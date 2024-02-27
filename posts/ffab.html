@@ -1,0 +1,790 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘 | 学习笔记本</title><meta name="keywords" content="Aria2,rclone,自动上传"><meta name="author" content="卢孟德"><meta name="copyright" content="卢孟德"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"><meta name="application-name" content="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"><meta property="og:url" content="https://blog.lumengde.com/posts/ffab.html"><meta property="og:site_name" content="学习笔记本"><meta property="og:description" content="在云服务器上部署Aria2 + AriaNG实现离线下载，并通过rclone挂载实现文件目录映射和自动上传OneDrive。"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=1b6043dd-3e16-77e9-5056-b2372d01e615"><meta property="article:author" content="卢孟德"><meta property="article:tag"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=1b6043dd-3e16-77e9-5056-b2372d01e615"><meta name="description" content="在云服务器上部署Aria2 + AriaNG实现离线下载，并通过rclone挂载实现文件目录映射和自动上传OneDrive。"><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://blog.lumengde.com/posts/ffab"><link rel="preconnect" href="//cdn.cbd.int"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="xxx"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/swiper/swiper.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: undefined,
+  postHeadAiDescription: {"enable":true,"gptName":"AnZhiYu","mode":"local","switchBtn":false,"btnLink":"https://afdian.net/item/886a79d4db6711eda42a52540025c377","randomNum":3,"basicWordCount":1000,"key":"xxxx","Referer":"https://xx.xx/"},
+  diytitle: {"enable":true,"leaveTitle":"w(ﾟДﾟ)w 不要走！再看看嘛！","backTitle":"♪(^∇^*)欢迎肥来！"},
+  LA51: undefined,
+  greetingBox: {"enable":true,"default":"晚上好👋","list":[{"greeting":"晚安😴","startTime":0,"endTime":5},{"greeting":"早上好鸭👋, 祝你一天好心情！","startTime":6,"endTime":9},{"greeting":"上午好👋, 状态很好，鼓励一下～","startTime":10,"endTime":10},{"greeting":"11点多啦, 在坚持一下就吃饭啦～","startTime":11,"endTime":11},{"greeting":"午安👋, 宝贝","startTime":12,"endTime":14},{"greeting":"🌈充实的一天辛苦啦！","startTime":14,"endTime":18},{"greeting":"19点喽, 奖励一顿丰盛的大餐吧🍔。","startTime":19,"endTime":19},{"greeting":"晚上好👋, 在属于自己的时间好好放松😌~","startTime":20,"endTime":24}]},
+  twikooEnvId: '',
+  commentBarrageConfig:undefined,
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: {"mode":"api","api":"https://img2color-go.vercel.app/api?img=","cover_change":true},
+  authorStatus: {"skills":null},
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":450},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    simplehomepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: 卢孟德","link":"链接: ","source":"来源: 学习笔记本","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#425AEF","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: true,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: '学习笔记本',
+  title: 'Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘',
+  postAI: '',
+  pageFillDescription: '前言, Aria2 和 AriaNG的安装, 获取Token并配置rclone, 下载Win版rclone获取token, 服务器安装rclone并配置, 开始手动挂载步骤, 设置开机自动挂载【可选】, 其他问题x2F疑问前言是一个轻量强大的全能型命令行下载工具支持多线程下载断点续传跨平台下载且资源占用低还支持磁力等多种下载协议常用做离线下载的服务端我们可以在服务器上搭建工具配合其前端页面通过简单的操作实现文件离线下载到服务器上后面还可以再让下载的文件自动上传到适用场景从别处下载文件的速度很慢要下载的东西很大很多但是不想开着电脑等有以下特性下载率高速度快重启后不丢失任务进度不重复下载删除正在下载的任务自动删除未完成的文件下载错误自动删除未完成的文件下载完成自动删除控制文件后缀名文件下载完成自动删除种子文件后缀名文件下载完成自动删除空目录下载完成自动清除垃圾文件文件类型过滤功能下载完成自动清除小文件文件大小过滤功能有一定的防版权投诉防迅雷吸血效果更好的下载支持一键安装管理脚本由逗比大佬编写但是年他未知原因消失了现在由大佬博客在更新和维护一键安装管理脚本增强版以下指令作废旧版本作废国内服务器无法访问作废报错参考教程主要参考资料搭建实现离线下载主要参考资料打造离线下载网盘下载资源自动上传到辅助参考资料实现等离线下载教程大佬原文自动挂载的教程使用教程挂载等网盘整个安装过程比较繁琐网上教程都比较乱我阅读了各位前辈的文章整合了几份比较好的的参考教程在自己也成功安装了的前提下写出了这篇文章可靠可用算年的旧翻新教程了教程也添加了一些补充知识可能的报错和解决方法以及每个步骤的个人理解以保证逻辑的完整性文章很长大家要耐心配置这份教程基于在服务器根目录创建文件夹与的根目录进行挂载和也差不多指令改成对应的就行有任何问题可在评论区留言或者去大佬的博客留言以下正式开始安装流程和的安装先安装依赖下载一键安装脚本选其一即可备用指令解析是一个在命令行下下载文件的工具是命令的一个选项表示只下载比本地文件新的文件如果本地文件与远程文件的时间戳一致则不会重新下载使用可以在下载文件时节省宽带和时间为项目地址表示访问网页内文件的内容而非网页表示该仓库下的分支的项目文件是提供的用于获取文件原始内容的服务指令表示修改文件或目录的权限是权限的修改部分表示添加可执行权限是要修改权限的文件名运行该脚本的指令为通过脚本安装一键安装管理脚本增强版升级脚本安装更新卸载启动停止重启修改配置查看配置查看日志清空日志手动更新自动更新状态未安装自动更新未开启请输入数字选择安装注意下载的过程中可能会读取出错导致残缺错误启动失败作者按照以往的经验来看提示是文件没下载完整选项更新一下就可以了如果更新成功会自动跳出简单配置信息简单配置信息地址地址地址检测失败端口密钥下载目录链接信息启动成功如果安装和更新一直失败可能是国内云服务器网络不好或者可能是宝塔面板的原因我是重装了系统更新时就成功了相关项目常见问题及解决方案运行脚本开放端口运行脚本选择自动更新这个反正是好东西开了就行运行脚本选择可以查看简单配置信息切记在安全组中开放添加端口安装就是一个是运行在服务端的前端管理工具可以理解为是一个控制下载的网页它可以不用命令就能在网页上添加下载任务非常方便方法在简单配置信息中给出了自带的链接我的是浏览器输入访问这个网址右上角会显示你的已连接并且也自动帮我们配置好了直接就能用方法在服务器自己安装一个前端站点安装方法在参考教程搭建实现离线下载有写如果你不需要将下载的内容上传到那到这里就结束了在上新建下载任务文件将会离线下载到你的服务器的文件夹下当然这个路径也可以在该下载任务的选项下载路径中自定义获取并配置是一个命令行工具支持不同对象存储和网盘之间的数据同步上传和下载并且通过一些设置可以实现离线下载服务器备份等实用功能本文我们配置一个并挂载到上下载版获取点此链接打开网站下载选择左上角的即可开魔法下载贼快解压到本地进入到最里层的目录因为解压后程序文件可能会嵌套几层文件夹打开本地计算机的进入该文件夹路径使用进行的授权以我为例浏览器下载此时会弹出浏览器让你登录微软账号然后进行授权出现同时回到窗口可以看到密密麻麻的保存包括花括号的所有内容后面用到补充盲猜是因为没有浏览器所以从上用浏览器获取一个这样不需要装浏览器也可以有进行验证了瞎猜的但是注意确保和上的版本相同不然可能会报错服务器安装并配置安装并执行如果报错因为服务器没有用来解压文件的程序那就安装然后再次安装它会自动解压解压可能有点久耐心等待配置接下来进行一连串配置别选错了选择新建一个远程存储挂载输入挂载名称选择存储类型这个菜单可能会有变化输入你此时对应的序号我这里是我们通过来进行身份验证所以这里的和不填两个回车就好选择服务所属的地区这里我们选如果选后面报错的话说明你的家庭版是微软版的而不是世纪互联的解决方法下面也有写即删除该重新配置回车跳过配置早期的教程出现的是这个提示都一样填输入回车这里就粘贴你复制的进行验证和订阅都选然后就配置完成了选退出配置此时已经成功连接到了如果出现报错可能是你在版上授权多次每次都会更换但你复制的不是最新的解决办法重新授权重来一次也可能是因为你选择了世纪互联的正常应该选的微软本身也有属于全球版微软网盘解决办法重新配置先删除已有的然后重新新建开始手动挂载步骤安装安装才能正常挂载远程存储因为是用于在用户空间中实现文件系统的一种技术它允许非特权用户在没有权限的情况下挂载文件系统如果不装就挂载会报错而且注意旧版教程用是不行的现在要用不然也会报错手动挂载远程存储到服务器本地文件系统指令解析综下所述这句命令的意义是将远程存储挂载到本地文件系统的目录并配置了一些挂载选项以及挂载点的权限设置这是命令行工具的一个子命令用于挂载远程存储到本地文件系统这是要挂载的远程存储的名称即我们刚才就配置了的远程存储你要挂载的网盘目录即挂载到的根目录这是本地文件系统上的挂载点即远程存储将会挂载到本地文件系统的目录这个选项指示复制符号链接而不是跟踪它们如果远程存储中包含符号链接将会复制它们而不是跟踪它们这个选项禁用压缩编码默认情况下会对请求进行压缩编码以提高传输效率但此选项会禁用该功能这个选项禁用对证书的验证默认情况下会验证远程服务器的证书但此选项会禁用该验证这个选项允许其他用户访问挂载点这使得其他用户可以访问挂载的这个选项允许挂载点不为空如果挂载点不为空会警告并拒绝挂载此选项允许挂载非空目录这个选项设置挂载点的权限掩码为即允许所有用户对挂载点中的文件和目录具有读写和执行权限将作为守护进程在关闭终端后可以继续保持任务的运行报错解决挂载后如果出现以下报错远程存储的根目录不能进行流式传输并建议您使用或模式只是个提示不管它就行报错意思是挂载点不存在确保您在执行挂载操作之前已经创建了挂载点解决办法创建这个文件夹报错不行了要安装报错看看是不是和服务器终端的连接断了现在处于本地计算机的终端重新连接服务器就好有没和我一样笨笨的小白补充知识挂载完成可输入指令查看挂载情况会发现最下面多了个取消挂载指令补充知识命令语法补充知识下一步马上用到的简单使用菜鸟教程在中按下进入插入模式后此时最底部会显示表示可编辑完成编辑后您可以按下键底下的消失表示退出编辑模式此时你随便输入都不会修改文件内容然后按下进入命令模式如果没反应先按切换为英文输入再试一次在命令模式中您可以输入以下命令来保存和退出保存文件退出编辑器保存并退出强制退出编辑器不保存修改自动上传脚本修改配置首先修改配置打开配置文件跳出来一大串配置信息按可以移动光标查看按进入编辑模式往下翻找到把改为进入文件最末尾新添以下内容这里又是个坑提前解决掉不进行证书校验按下键退出插入模式接着按和出现冒号进入命令模式输入然后按回车表示保存并退出然后修改上传脚本根据个人需要进行配置可以只修改这一句把改成网盘名称配置时填写的然后就全部配置好啦重启并测试上传脚本出现表示连接成功然后可以去下载文件在服务器的会有该文件红名和该文件的控制文件文件名文件用于管理和控制对应文件的下载下载完成后会自动删除在下载完成后文件就会从服务器上传到中上传成功后下载的源文件也会删除疑问在时文件名变红什么意思如图设置开机自动挂载可选服务器重启后不会自动挂载需要重新输入挂载指令手动挂载粘贴指令不麻烦怕就怕会忘记所以我们可以设置开机自动挂载可选下载自动挂载脚本修改自动挂载脚本通过编辑器修改好以下内容配置时填写的远程文件夹网盘里的挂载的一个文件夹留空为整个网盘挂载地址本地挂载目录该填写方法会将网盘根目录挂载到服务器根目录下的文件夹下设置挂载脚本开机自动执行然后显示信息正在运行表示开启自启挂载成功补充知识管理自启挂载开始挂载停止挂载重新挂载查看日志卸载自启挂载如果你确定的话测试是否可用打开自己专属的网站可以收藏该网址新建下载任务输入下载链接下载一个文件来测试这里我们用的下载地址来测试看到它在下载文件下载完后就会上传等一会后就可在看到该文件这里的下载和上传速度取决于你的云服务器的宽带与本地计算机网络无关如果你出错本教程不会点击下载发现进度卡在又是个坑出错原因通常情况下在下载链接时会验证证书的有效性确保连接的安全性但有时候可能会遇到一些情况比如下载的站点使用的是自签名证书或者证书过期等导致在验证证书时出现问题无法下载文件解决办法可以在配置文件中加入一句这个选项的作用是告诉在下载文件时不要验证证书打开配置文件在文件末尾加上以下内容保存并退出不进行证书校验然后重启下它就自动下载了其他问题疑问如果我们填的是百度网盘分享网址例如它会下载该文件的详情页的代码名称为大小十几百度网盘链接无法直接通过地址下载我们需要找到一个解析百度网盘直链的网站把链接解析为直链再放到里下载或者保存到你的网盘借助油猴的百度网盘千千下载助手插件在网页版百度网盘获取直链太多文件上传到根目录很乱有没有办法修改下载路径一个下载任务可以填多个下载地址点击新建后在链接按钮旁边有个选项按钮里面下载路径可以自定义到时候本次任务下载的所有文件都会放在以根目录为起点的的自定义文件夹下输入指令可以看到你的文件在服务器上的映射但是没有实际文件全都在网盘里你可以在这里操作文件然后网盘内也会做出对应的修改例如在服务器进入文件夹使用文件路径文件名指令删除一个文件刷新软件发现这个文件被删没了慎重挂载方式的好处是您可以像操作本地文件一样操作云存储中的文件例如复制粘贴编辑等但是文件实际上都在里而不是服务器上如果您在挂载的文件夹中删除了某个文件实际上相当于在云存储中删除了该文件因为挂载的是实时的文件系统所以对挂载点中的文件进行的任何更改都会立即反映到中下载完服务器上传时怎么查看进度不懂再说但是好像是一次性下载完所有任务再一次性上传我不确定挂载的文件系统的更新有一定滞后性默认分钟刷新一次好像更短如果下载新文件或者上传成功则立即更新一次不一定说每隔分钟默认会自动刷新挂载的文件系统即重新获取一次目录结构以确保挂载的文件系统与远程存储同步可通过修改来修改间隔时间注意刷新频率的增加可能会增加系统资源的使用和网络流量这个指令用不了为什么会有残留文件删除时没有成功给发送指令导致没有删除文件或者下载完没有自动上传漏了有其他疑问欢迎补充',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-02-27 15:32:46',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" ><meta name="generator" content="Hexo 7.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><div class="back-home-button"><i class="anzhiyufont anzhiyu-icon-grip-vertical"></i><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">站点</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="安知鱼的博客"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="安知鱼的博客"/><span class="back-menu-item-text">安知鱼的博客</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/posts/d50a.html" title="标签语法"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="标签语法"/><span class="back-menu-item-text">标签语法</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://docs.anheyu.com/advanced/#%E6%90%9C%E7%B4%A2%E7%B3%BB%E7%BB%9F" title="官方文档"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="官方文档"/><span class="back-menu-item-text">官方文档</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://webstack.lumengde.com/" title="晚风导航"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="晚风导航"/><span class="back-menu-item-text">晚风导航</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div></div><a id="site-name" href="/" accesskey="h"><div class="title">学习笔记本</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a><div id="he-plugin-simple"></div><script>var WIDGET = {
+  "CONFIG": {
+    "modules": "0124",
+    "background": "2",
+    "tmpColor": "FFFFFF",
+    "tmpSize": "16",
+    "cityColor": "FFFFFF",
+    "citySize": "16",
+    "aqiColor": "E8D87B",
+    "aqiSize": "16",
+    "weatherIconSize": "24",
+    "alertIconSize": "18",
+    "padding": "10px 10px 10px 10px",
+    "shadow": "0",
+    "language": "auto",
+    "borderRadius": "20",
+    "fixed": "true",
+    "vertical": "top",
+    "horizontal": "left",
+    "left": "20",
+    "top": "7.1",
+    "key": "df245676fb434a0691ead1c63341cd94"
+  }
+}
+</script><link rel="stylesheet" href="https://widget.qweather.net/simple/static/css/he-simple.css?v=1.4.0"/><script src="https://widget.qweather.net/simple/static/js/he-simple.js?v=1.4.0"></script></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 归档</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/fcircle/"><i class="anzhiyufont anzhiyu-icon-artstation faa-tada" style="font-size: 0.9em;"></i><span> 朋友圈</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/air-conditioner/"><i class="anzhiyufont anzhiyu-icon-fan faa-tada" style="font-size: 0.9em;"></i><span> 小空调</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" target="_blank" rel="noopener" href="https://umami.lumengde.com/share/ZSWmgM662ZphmxH2/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E6%9C%AC"><span> 访客数据</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div></div><div id="nav-right"><div class="nav-button only-home" id="travellings_button" title="随机前往一个开往项目网站"><a class="site-page" onclick="anzhiyu.totraveling()" title="随机前往一个开往项目网站" href="javascript:void(0);" rel="external nofollow" data-pjax-state="external"><i class="anzhiyufont anzhiyu-icon-train"></i></a></div><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" alt="微信" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" alt="支付宝" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/Hexo/" style="font-size: 1.05rem;">Hexo<sup>3</sup></a><a href="/tags/VPS/" style="font-size: 1.05rem;">VPS<sup>3</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 1.05rem;">科学上网<sup>2</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/02/"><span class="card-archive-list-date">二月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">3</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/01/"><span class="card-archive-list-date">一月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">3</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="post-meta-categories"><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/VPS%E5%BA%94%E7%94%A8%E6%90%AD%E5%BB%BA/" itemprop="url">VPS应用搭建</a></span><span class="article-meta tags"><a class="article-meta__tags" href="/tags/VPS/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>VPS</span></a></span></div></div><h1 class="post-title" itemprop="name headline">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" itemprop="dateCreated datePublished" datetime="2024-02-06T07:28:59.000Z" title="发表于 2024-02-06 15:28:59">2024-02-06</time><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" itemprop="dateCreated datePublished" datetime="2024-02-27T07:32:46.184Z" title="更新于 2024-02-27 15:32:46">2024-02-27</time></span></div><div class="meta-secondline"><span class="post-meta-separator"></span><span class="post-meta-wordcount"><i class="anzhiyufont anzhiyu-icon-file-word post-meta-icon" title="文章字数"></i><span class="post-meta-label" title="文章字数">字数总计:</span><span class="word-count" title="文章字数">6.7k</span><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-clock post-meta-icon" title="阅读时长"></i><span class="post-meta-label" title="阅读时长">阅读时长:</span><span>26分钟</span></span><span class="post-meta-separator">       </span><span class="post-meta-position" title="作者IP属地为福州"><i class="anzhiyufont anzhiyu-icon-location-dot"></i>福州</span></div></div></div><section class="main-hero-waves-area waves-area"><svg class="waves-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"></path></defs><g class="parallax"><use href="#gentle-wave" x="48" y="0"></use><use href="#gentle-wave" x="48" y="3"></use><use href="#gentle-wave" x="48" y="5"></use><use href="#gentle-wave" x="48" y="7"></use></g></svg></section><div id="post-top-cover"><img class="nolazyload" id="post-top-bg" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=1b6043dd-3e16-77e9-5056-b2372d01e615"></div></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container" itemscope itemtype="https://blog.lumengde.com/posts/ffab.html"><header><a class="post-meta-categories" href="/categories/VPS%E5%BA%94%E7%94%A8%E6%90%AD%E5%BB%BA/" itemprop="url">VPS应用搭建</a><a href="/tags/VPS/" tabindex="-1" itemprop="url">VPS</a><h1 id="CrawlerTitle" itemprop="name headline">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">卢孟德</span><time itemprop="dateCreated datePublished" datetime="2024-02-06T07:28:59.000Z" title="发表于 2024-02-06 15:28:59">2024-02-06</time><time itemprop="dateCreated datePublished" datetime="2024-02-27T07:32:46.184Z" title="更新于 2024-02-27 15:32:46">2024-02-27</time></header><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Aria2是一个轻量、强大的全能型命令行下载工具，支持多线程下载、断点续传、跨平台下载且资源占用低，还支持 BT、磁力、HTTP、FTP 等多种下载协议，常用做离线下载的服务端。</p>
+<p>我们可以在服务器上搭建Aria2工具，配合其前端页面AriaNg，通过简单的操作，实现文件离线下载到服务器上。后面还可以再让下载的文件自动上传到OneDrive。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061542690.png"></p>
+<p>适用场景：从别处下载文件的速度很慢、要下载的东西很大很多，但是不想开着电脑等。</p>
+<details class="toggle" ><summary class="toggle-button" style="">Aria2 有以下特性：</summary><div class="toggle-content"><ul>
+<li>BT 下载率高、速度快</li>
+<li>重启后不丢失任务进度、不重复下载</li>
+<li>删除正在下载的任务自动删除未完成的文件</li>
+<li>下载错误自动删除未完成的文件</li>
+<li>下载完成自动删除控制文件(.aria2后缀名文件)</li>
+<li>下载完成自动删除种子文件(.torrent后缀名文件)</li>
+<li>下载完成自动删除空目录</li>
+<li>BT 下载完成自动清除垃圾文件(文件类型过滤功能)</li>
+<li>BT 下载完成自动清除小文件(文件大小过滤功能)</li>
+<li>有一定的防版权投诉、防迅雷吸血效果</li>
+<li>更好的 PT 下载支持</li>
+</ul>
+</div></details>
+
+
+<p><strong>Aria2一键安装管理脚本</strong>由Toyo (逗比) 大佬编写，但是18年他未知原因消失了。<br>现在由<strong>P3TERX</strong>大佬(<a target="_blank" rel="noopener" href="https://github.com/P3TERX/aria2.sh">Github</a>)（<a target="_blank" rel="noopener" href="https://p3terx.com/">博客</a>）在更新和维护<strong>Aria2 一键安装管理脚本 增强版</strong><br><strong>以下指令作废</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">旧版本，作废 wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/aria2.sh &amp;&amp; <span class="built_in">chmod</span> +x aria2.sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">国内服务器无法访问，作废 wget -N https://git.io/aria2.sh &amp;&amp; <span class="built_in">chmod</span> +x aria2.sh</span></span><br><span class="line">报错：</span><br><span class="line">Connecting to git.io (git.io)|208.101.60.87|:80... failed: Connection timed out.</span><br><span class="line">Connecting to git.io (git.io)|2a03:2880:f11b:83:face:b00c:0:25de|:80... failed: Network is unreachable.</span><br></pre></td></tr></table></figure>
+
+<p>参考教程：</p>
+<ul>
+<li><p>1.<a target="_blank" rel="noopener" href="https://back2me.cn/skills/aria2.html">【主要参考资料】搭建aria2+aria2NG实现离线下载</a></p>
+</li>
+<li><p>2.<a target="_blank" rel="noopener" href="https://back2me.cn/skills/Aria2toonedrive.html">【主要参考资料】打造离线下载网盘——Aira2下载资源自动上传到Onedrive</a></p>
+</li>
+<li><p>3.<a target="_blank" rel="noopener" href="https://blog.tcilay.fun/posts/2022/aria2-onedrive%E5%AE%9E%E7%8E%B0%E7%A6%BB%E7%BA%BF%E4%B8%8B%E8%BD%BD%E6%95%99%E7%A8%8B">【辅助参考资料】aria2+rclone实现OneDrive等离线下载教程</a></p>
+</li>
+<li><p>4.<a target="_blank" rel="noopener" href="https://p3terx.com/archives/linux-vps-uses-rclone-to-mount-network-drives-such-as-onedrive-and-google-drive.html">【P3TERX ZONE大佬原文，自动挂载rclone的教程】Rclone 使用教程 - 挂载 OneDrive、Google Drive 等网盘(Linux)</a><br>，</p>
+</li>
+<li><p><strong>整个安装过程比较繁琐，网上教程都比较乱。我阅读了各位前辈的文章，整合了几份比较好的的参考教程，在自己也成功安装了的前提下写出了这篇文章。可靠可用，算2024年的旧翻新教程了。</strong></p>
+</li>
+<li><p><strong>教程也添加了一些补充知识、可能的报错和解决方法以及每个步骤的个人理解，以保证逻辑的完整性。文章很长，大家要耐心配置。</strong></p>
+</li>
+<li><p><strong>这份教程基于Debian11，在服务器根目录创建<code>onedrive</code>文件夹与OneDrive的根目录进行挂载。Ubuntu和CentOS也差不多，指令改成对应的就行。</strong></p>
+</li>
+<li><p><strong>有任何问题可在评论区留言，或者去P3TERX大佬的博客留言。</strong></p>
+</li>
+</ul>
+<hr>
+<div class="note info flat"><p><strong>以下正式开始安装流程</strong></p>
+</div>
+
+<h1 id="Aria2-和-AriaNG的安装"><a href="#Aria2-和-AriaNG的安装" class="headerlink" title="Aria2 和 AriaNG的安装"></a>Aria2 和 AriaNG的安装</h1><ul>
+<li><p><strong>先安装依赖</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install wget curl ca-certificates git</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>下载一键安装脚本（选其一即可）</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -N https://raw.githubusercontent.com/P3TERX/aria2.sh/master/aria2.sh &amp;&amp; chmod +x aria2.sh &amp;&amp; ./aria2.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -N https://github.com/P3TERX/aria2.sh/raw/master/aria2.sh &amp;&amp; chmod +x aria2.sh &amp;&amp; ./aria2.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">备用：</span></span><br><span class="line">wget -N https://raw.githubusercontent.com/ifwlzs/aria2.sh/master/aria2.sh &amp;&amp; chmod +x aria2.sh &amp;&amp; ./aria2.sh</span><br></pre></td></tr></table></figure>
+<details class="toggle" ><summary class="toggle-button" style="">指令解析：</summary><div class="toggle-content"><ul>
+<li><code>wget</code> 是一个在命令行下下载文件的工具，</li>
+<li><code>-N</code> 是 wget 命令的一个选项，表示只下载比本地文件新的文件，如果本地文件与远程文件的时间戳一致，则不会重新下载，使用-N可以在下载文件时节省宽带和时间。</li>
+<li><code>https://github.com/P3TERX/aria2.sh</code> 为项目地址，</li>
+<li><code>/raw</code> 表示访问网页内文件的内容而非网页，</li>
+<li><code>/master/aria2.sh</code> 表示该仓库下的master分支的aria2.sh项目文件。</li>
+<li><code>raw.githubusercontent.com</code> 是 GitHub 提供的用于获取文件原始内容的服务。</li>
+<li><code>chmod</code> 指令表示修改文件或目录的权限，</li>
+<li><code>+x</code> 是权限的修改部分，表示添加可执行权限</li>
+<li><code>aria2.sh</code> 是要修改权限的文件名。</li>
+</ul>
+</div></details>
+<p>运行该脚本的指令为</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./aria2.sh</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>通过脚本安装Aria2</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Aria2 一键安装管理脚本 增强版 [v2.7.4] by P3TERX.COM</span><br><span class="line"></span><br><span class="line"> 0. 升级脚本</span><br><span class="line">———————————————————————</span><br><span class="line"> 1. 安装 Aria2</span><br><span class="line"> 2. 更新 Aria2</span><br><span class="line"> 3. 卸载 Aria2</span><br><span class="line">———————————————————————</span><br><span class="line"> 4. 启动 Aria2</span><br><span class="line"> 5. 停止 Aria2</span><br><span class="line"> 6. 重启 Aria2</span><br><span class="line">———————————————————————</span><br><span class="line"> 7. 修改 配置</span><br><span class="line"> 8. 查看 配置</span><br><span class="line"> 9. 查看 日志</span><br><span class="line">10. 清空 日志</span><br><span class="line">———————————————————————</span><br><span class="line">11. 手动更新 BT-Tracker</span><br><span class="line">12. 自动更新 BT-Tracker</span><br><span class="line">———————————————————————</span><br><span class="line"></span><br><span class="line">Aria2 状态: 未安装</span><br><span class="line"></span><br><span class="line">自动更新 BT-Tracker: 未开启</span><br><span class="line"></span><br><span class="line">请输入数字 [0-12]:1</span><br></pre></td></tr></table></figure>
+<p><strong>选择<code>1</code>，安装 Aria2</strong></p>
+</li>
+</ul>
+<div class="note warning flat"><p><strong>注意：下载Aria2的过程中可能会读取出错，导致Aria2残缺。</strong></p>
+</div>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">2024-02-05 16:47:54 (14.8 KB/s) - Read error at byte 652265/4675670 (Success). Retrying.</span><br><span class="line">......</span><br><span class="line">2024-02-05 16:48:05 (5.10 KB/s) - Read error at byte 672830/4675670 (Success). Giving up.</span><br><span class="line">......</span><br><span class="line">/etc/init.d/aria2: line 79:  6182 Segmentation fault      nohup /usr/local/bin/aria2c --conf-path=&quot;$&#123;CONFIG&#125;&quot; &gt;&gt; &quot;$&#123;LOG&#125;&quot; 2&gt;&amp;1</span><br><span class="line">[错误] Aria2 启动失败 !</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>作者：按照以往的经验来看提示<code>Segmentation fault</code> 是 aria2c 文件没下载完整，<strong>选项 <code>2</code> 更新Aria2一下就可以了。</strong></p>
+</blockquote>
+<p>如果更新成功，会自动跳出Aria2简单配置信息</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Aria2 简单配置信息：</span><br><span class="line"></span><br><span class="line"> IPv4 地址      : 8.138.119.94</span><br><span class="line"> IPv6 地址      : IPv6 地址检测失败</span><br><span class="line"> RPC 端口       : 6800</span><br><span class="line"> RPC 密钥       : 91960f64790cfce0815a</span><br><span class="line"> 下载目录       : /root/downloads</span><br><span class="line"> AriaNg 链接    : http://ariang.js.org/#!/settings/rpc/set/ws/8.138.119.94/6800/jsonrpc/OTE5NjBmNjQ3OTBjZmNlMDgxNWE=</span><br><span class="line"></span><br><span class="line">[信息] Aria2 启动成功 !</span><br><span class="line">[root@iZ7xvcu671mq0lrlzj6sbqZ ~]# </span><br></pre></td></tr></table></figure>
+
+<p><strong>如果安装和更新一直失败 ，可能是国内云服务器网络不好，或者可能是宝塔面板的原因。我是重装了系统，更新Aria2时就成功了。</strong></p>
+<p><a target="_blank" rel="noopener" href="https://p3terx.com/archives/aria2_perfect_config-faq.html">Aria2 相关项目常见问题及解决方案（FAQ）- by P3TERX ZONE</a></p>
+<ul>
+<li><p><strong>运行脚本 &amp; 开放端口</strong><br>运行脚本，选择<code>12</code>，自动更新BT-Tracker，这个反正是好东西，开了就行…<br>运行脚本，选择<code>8</code>，可以查看Aria2简单配置信息。<br><strong>【切记】在安全组中开放(添加)<code>6800</code>端口。</strong></p>
+</li>
+<li><p><strong>AriaNG安装</strong><br>AriaNg就是一个是运行在服务端的Aria2前端管理工具，可以理解为是一个控制 aria2下载的网页，它可以不用Aria2命令就能在网页上添加下载任务，非常方便！</p>
+<ul>
+<li>方法1：在Aria2简单配置信息中给出了自带的AriaNG链接，我的是<code>http://ariang.js.org/#!/settings/rpc/set/ws/8.138.119.94/6800/jsonrpc/OTE5NjBmNjQ3OTBjZmNlMDgxNWE=</code><br>  浏览器输入访问这个网址，右上角会显示<code>&lt;你的IP&gt;已连接</code>。并且RPC也自动帮我们配置好了，直接就能用！</li>
+<li>方法2：在服务器自己安装一个AriaNG前端站点<br>  安装方法在参考教程：<a target="_blank" rel="noopener" href="https://back2me.cn/skills/aria2.html">搭建aria2+aria2NG实现离线下载</a>有写。</li>
+</ul>
+</li>
+</ul>
+<div class="note success flat"><p>如果你不需要将下载的内容上传到OneDrive，那到这里就结束了。在AriaNG上新建下载任务，文件将会离线下载到你的服务器的<code>/root/downloads</code>文件夹下，当然这个路径也可以在AriaNG该下载任务的<code>选项-&gt;下载路径</code>中自定义。</p>
+</div>
+
+<h1 id="获取Token并配置rclone"><a href="#获取Token并配置rclone" class="headerlink" title="获取Token并配置rclone"></a>获取Token并配置rclone</h1><p>Rclone是一个命令行工具，支持不同对象存储和网盘之间的数据同步、上传和下载。并且通过一些设置可以实现离线下载、服务器备份等实用功能。</p>
+<p>本文我们配置一个rclone并挂载到OneDrive上。</p>
+<h2 id="下载Win版rclone获取token"><a href="#下载Win版rclone获取token" class="headerlink" title="下载Win版rclone获取token"></a>下载Win版rclone获取token</h2><p><a target="_blank" rel="noopener" href="https://rclone.org/downloads/">【点此链接】</a>打开网站，下载<code>rclone</code>。选择左上角的Intel&#x2F;AMD - 64 Bit  Windows即可(开魔法下载贼快)</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061510614.png"></p>
+<p>解压到本地，进入到<strong>最里层的目录</strong>。因为解压后程序文件可能会嵌套几层文件夹。</p>
+<p>打开<strong>本地计算机</strong>的<code>cmd</code>，进入该文件夹路径，使用rclone进行 OneDrive 的授权。以我为例：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402052208207.png"></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">D:</span><br><span class="line">cd D:\Edge浏览器下载\rclone-v1.65.2-windows-amd64\rclone-v1.65.2-windows-amd64</span><br><span class="line">rclone authorize &quot;onedrive&quot;</span><br></pre></td></tr></table></figure>
+<p>此时会弹出浏览器，让你登录微软账号，然后进行授权，出现Success。同时回到cmd窗口可以看到密密麻麻的token。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Paste the following into your remote machine ---&gt;</span><br><span class="line">&#123;&quot;access_token&quot;:&quot;EwCIA8l6BAAUs5+HQn0N+h2FxWzLS31ZgQVuHsYAAUiPSXbjvRMIl44FhCe7tbzWGBBBEK5lvsb3qVW4BRlozGbI9j+YBkF/4a256JnfPFRcBs2d4ILNxz3+V7gVd+DRaI5lcGIWWqFrwpmSuOMgdLTX/pxY7Eg2enKObgQhwvwiTdnPzJtpgKKU49wLWtmV7BV3Oq70KRx/pLLmDnN8bmzo031BEDXx19qQailE0i32AE8nrG0RkD6pnzozxV/RGkko6JdmgccFVKsTJBtMVUhc/w1QQbfUzwlGgMYXUJyqWZu3icFAQrQz/RJJT9W6ufMwc69R8LxDXbhcnlT8ugnrisvZBC4SbYGvOPqctAVA+Ty2wHn5lmHwRg6r+a0DZgAACBWVXmrXqJmwWAJ2eZ561sP4oIIe8JRSWXCOsL62cA09qSxxvuDcI8qTGigO7MGYt7UwflGmaNVRRHwLyWBxxIy8m4i9Dx1aUN+nu6206+u7y4k8VJQ0oSsUkQiaXNOuXT1GMYzuGp49anRd8FqhgBM1bqF70/BwFdvsKRacPfXYGhrMjx8I/fCliULQqkXBoscuUGwTI73RE8LvyurbaMyfTw+Rolw17kFwXhJnRxJNkwlml63YzwILpUNuTw7NPQeC7XTSSdEVcOSeMHY3Y5yAoBN4RJTjYwlFWQZvbVfntbK494eFL4kREPbZJLbtp5g8UeYYzgQytgaiFOlSH0qZQ+5F9VfjRRCSMLkT+9JL6A0QhiIJZueH3iMgVnAETd1W+XJX1WkqopYRRFQsTtL0yPW2dwU4TLbT3cTFS1DlT5cWEK2DXaql5rC3WsMVHul5fR7PibqNitxma273FHrZZrLPSwigHw0IrFPOlMqaWpYZrWobpt198RsJRJJ9qc4VZ9UH/nI2c6McspBmkVaKWdPJR6dLo8sQQP4WtX+qeiVbdSL3lC7/M2X561FJ/8KP7R62CB65O3MSppOiUFugxvg9zWyw+8duOGT5C7dfbmcAlsnsiVtmU2L2zocRdt21HeQS65rn36RHlVzR387ScNPTw70VwoZsbPkDYnRhooAQxbj+gU4YYPp/vC8kOajBwE2T5mO2WgeSp2i/3+D+E4FqJ4xTZvWCEBK/sVfKcwUBEQEJiTGOEFFzOsgFPXMTY+HEB3iylGY8QW74CkYW8GuFHmYFt5ePBNMQUxIWewh1Ag==&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;refresh_token&quot;:&quot;M.C107_BAY.-ChTGrGCDga6UxtlAtm*Q0Gm8J3lq5Xu9El66TMB1fIoNCrDwmP5O0C7EpG4ieS8SHIp1MIqg*KPRbteNSXWT6ED1daC6v7iGS5aI64Guk99n9ZD7Crr5vB6IbUuR3JKfSGvCqMVJFp0pkUbaCJEsaCKk3p7heHlJUHQjtLuuQza34FqGfVCsuSfAKIyrnPu8Be7kqZ7PossR1BlfREmwA9YOQnl1Pg8LFHYnfpUi5HMpf2eTfm34EYPYJ5*CkaUyFTuUU*OZL1V6zeRKGLWm6wIkK9BIyb1QXr5MiEaZbmNAgGGm*zSVagb63Iu6Lh2fEu0MjdJzL*FN1Yikke5vQpu5p3HOVCQHroLIyzfoUTvi&quot;,&quot;expiry&quot;:&quot;2024-02-05T23:54:05.7303698+08:00&quot;&#125;</span><br><span class="line">&lt;---End paste</span><br></pre></td></tr></table></figure>
+<p>保存<code>&#123;....&#125;</code>包括花括号的所有内容，后面用到。</p>
+<p>补充：盲猜是因为Linux没有浏览器，所以从Windows上用浏览器获取一个Token，这样Linux不需要装浏览器，也可以有Token进行验证了。（瞎猜的）<br><strong>但是注意，确保Windows和Linux上的rclone版本相同，不然可能会报错。</strong></p>
+<h2 id="服务器安装rclone并配置"><a href="#服务器安装rclone并配置" class="headerlink" title="服务器安装rclone并配置"></a>服务器安装rclone并配置</h2><p><strong>安装并执行 rclone</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">curl https://rclone.org/install.sh | sudo bash</span><br></pre></td></tr></table></figure>
+<p>如果报错：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">None of the supported tools for extracting zip archives (unzip 7z busybox) were found. Please install one of them and try again.</span><br></pre></td></tr></table></figure>
+<p>因为服务器没有用来解压文件的程序。那就安装unzip，<strong>然后再次安装rclone</strong>，它会自动解压。（解压可能有点久，耐心等待）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo apt install unzip</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>配置rclone</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rclone config</span><br></pre></td></tr></table></figure>
+<p>接下来进行一连串配置，别选错了。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@iZ7xvcu671mq0lrlzj6sbqZ ~]# rclone config</span><br><span class="line">No remotes found, make a new one?</span><br><span class="line">n) New remote</span><br><span class="line">s) Set configuration password</span><br><span class="line">q) Quit config</span><br><span class="line">n/s/q&gt; n</span><br></pre></td></tr></table></figure>
+<p>选择<code>n</code>，新建一个远程存储&#x2F;挂载</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Enter name for new remote.</span><br><span class="line">name&gt; onedrive</span><br></pre></td></tr></table></figure>
+<p>输入挂载名称<code>onedrive</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option Storage.</span><br><span class="line">Type of storage to configure.</span><br><span class="line">Choose a number from below, or type in your own value.</span><br><span class="line"> 1 / 1Fichier</span><br><span class="line">   \ (fichier)</span><br><span class="line"> 2 / Akamai NetStorage</span><br><span class="line">   \ (netstorage)</span><br><span class="line"> 3 / Alias for an existing remote</span><br><span class="line">   \ (alias)</span><br><span class="line"> 4 / Amazon Drive</span><br><span class="line">   \ (amazon cloud drive)</span><br><span class="line"> 5 / Amazon S3 Compliant Storage Providers including AWS, Alibaba, ArvanCloud, Ceph, ChinaMobile, Cloudflare, DigitalOcean, Dreamhost, GCS, HuaweiOBS, IBMCOS, IDrive, IONOS, LyveCloud, Leviia, Liara, Linode, Minio, Netease, Petabox, RackCorp, Rclone, Scaleway, SeaweedFS, StackPath, Storj, Synology, TencentCOS, Wasabi, Qiniu and others</span><br><span class="line">   \ (s3)</span><br><span class="line"> 6 / Backblaze B2</span><br><span class="line">   \ (b2)</span><br><span class="line"> 7 / Better checksums for other remotes</span><br><span class="line">   \ (hasher)</span><br><span class="line"> 8 / Box</span><br><span class="line">   \ (box)</span><br><span class="line"> 9 / Cache a remote</span><br><span class="line">   \ (cache)</span><br><span class="line">10 / Citrix Sharefile</span><br><span class="line">   \ (sharefile)</span><br><span class="line">11 / Combine several remotes into one</span><br><span class="line">   \ (combine)</span><br><span class="line">12 / Compress a remote</span><br><span class="line">   \ (compress)</span><br><span class="line">13 / Dropbox</span><br><span class="line">   \ (dropbox)</span><br><span class="line">14 / Encrypt/Decrypt a remote</span><br><span class="line">   \ (crypt)</span><br><span class="line">15 / Enterprise File Fabric</span><br><span class="line">   \ (filefabric)</span><br><span class="line">16 / FTP</span><br><span class="line">   \ (ftp)</span><br><span class="line">17 / Google Cloud Storage (this is not Google Drive)</span><br><span class="line">   \ (google cloud storage)</span><br><span class="line">18 / Google Drive</span><br><span class="line">   \ (drive)</span><br><span class="line">19 / Google Photos</span><br><span class="line">   \ (google photos)</span><br><span class="line">20 / HTTP</span><br><span class="line">   \ (http)</span><br><span class="line">21 / Hadoop distributed file system</span><br><span class="line">   \ (hdfs)</span><br><span class="line">22 / HiDrive</span><br><span class="line">   \ (hidrive)</span><br><span class="line">23 / ImageKit.io</span><br><span class="line">   \ (imagekit)</span><br><span class="line">24 / In memory object storage system.</span><br><span class="line">   \ (memory)</span><br><span class="line">25 / Internet Archive</span><br><span class="line">   \ (internetarchive)</span><br><span class="line">26 / Jottacloud</span><br><span class="line">   \ (jottacloud)</span><br><span class="line">27 / Koofr, Digi Storage and other Koofr-compatible storage providers</span><br><span class="line">   \ (koofr)</span><br><span class="line">28 / Linkbox</span><br><span class="line">   \ (linkbox)</span><br><span class="line">29 / Local Disk</span><br><span class="line">   \ (local)</span><br><span class="line">30 / Mail.ru Cloud</span><br><span class="line">   \ (mailru)</span><br><span class="line">31 / Mega</span><br><span class="line">   \ (mega)</span><br><span class="line">32 / Microsoft Azure Blob Storage</span><br><span class="line">   \ (azureblob)</span><br><span class="line">33 / Microsoft Azure Files</span><br><span class="line">   \ (azurefiles)</span><br><span class="line">34 / Microsoft OneDrive</span><br><span class="line">   \ (onedrive)</span><br><span class="line">35 / OpenDrive</span><br><span class="line">   \ (opendrive)</span><br><span class="line">36 / OpenStack Swift (Rackspace Cloud Files, Blomp Cloud Storage, Memset Memstore, OVH)</span><br><span class="line">   \ (swift)</span><br><span class="line">37 / Oracle Cloud Infrastructure Object Storage</span><br><span class="line">   \ (oracleobjectstorage)</span><br><span class="line">38 / Pcloud</span><br><span class="line">   \ (pcloud)</span><br><span class="line">39 / PikPak</span><br><span class="line">   \ (pikpak)</span><br><span class="line">40 / Proton Drive</span><br><span class="line">   \ (protondrive)</span><br><span class="line">41 / Put.io</span><br><span class="line">   \ (putio)</span><br><span class="line">42 / QingCloud Object Storage</span><br><span class="line">   \ (qingstor)</span><br><span class="line">43 / Quatrix by Maytech</span><br><span class="line">   \ (quatrix)</span><br><span class="line">44 / SMB / CIFS</span><br><span class="line">   \ (smb)</span><br><span class="line">45 / SSH/SFTP</span><br><span class="line">   \ (sftp)</span><br><span class="line">46 / Sia Decentralized Cloud</span><br><span class="line">   \ (sia)</span><br><span class="line">47 / Storj Decentralized Cloud Storage</span><br><span class="line">   \ (storj)</span><br><span class="line">48 / Sugarsync</span><br><span class="line">   \ (sugarsync)</span><br><span class="line">49 / Transparently chunk/split large files</span><br><span class="line">   \ (chunker)</span><br><span class="line">50 / Union merges the contents of several upstream fs</span><br><span class="line">   \ (union)</span><br><span class="line">51 / Uptobox</span><br><span class="line">   \ (uptobox)</span><br><span class="line">52 / WebDAV</span><br><span class="line">   \ (webdav)</span><br><span class="line">53 / Yandex Disk</span><br><span class="line">   \ (yandex)</span><br><span class="line">54 / Zoho</span><br><span class="line">   \ (zoho)</span><br><span class="line">55 / premiumize.me</span><br><span class="line">   \ (premiumizeme)</span><br><span class="line">56 / seafile</span><br><span class="line">   \ (seafile)</span><br><span class="line">Storage&gt; 34</span><br></pre></td></tr></table></figure>
+<p>选择存储类型。这个菜单可能会有变化，输入你此时<code>Microsoft OneDrive</code>对应的序号，我这里是<code>34</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option client_id.</span><br><span class="line">OAuth Client Id.</span><br><span class="line">Leave blank normally.</span><br><span class="line">Enter a value. Press Enter to leave empty.</span><br><span class="line">client_id&gt;</span><br><span class="line"></span><br><span class="line">Option client_secret.</span><br><span class="line">OAuth Client Secret.</span><br><span class="line">Leave blank normally.</span><br><span class="line">Enter a value. Press Enter to leave empty.</span><br><span class="line">client_secret&gt;</span><br></pre></td></tr></table></figure>
+<p>我们通过Token来进行身份验证，所以这里的client_id和client_secret不填，两个回车就好。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option region.</span><br><span class="line">Choose national cloud region for OneDrive.</span><br><span class="line">Choose a number from below, or type in your own string value.</span><br><span class="line">Press Enter for the default (global).</span><br><span class="line"> 1 / Microsoft Cloud Global</span><br><span class="line">   \ (global)</span><br><span class="line"> 2 / Microsoft Cloud for US Government</span><br><span class="line">   \ (us)</span><br><span class="line"> 3 / Microsoft Cloud Germany</span><br><span class="line">   \ (de)</span><br><span class="line"> 4 / Azure and Office 365 operated by Vnet Group in China</span><br><span class="line">   \ (cn)</span><br><span class="line">region&gt; 1</span><br></pre></td></tr></table></figure>
+<p>选择OneDrive服务所属的地区。这里我们选<code>1</code>。<strong>如果选<code>4</code>后面报错的话，</strong>说明你的Office 365家庭版是微软版的，而不是世纪互联的。解决方法下面也有写。（即删除该rclone重新配置）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Edit advanced config?</span><br><span class="line">y) Yes</span><br><span class="line">n) No (default)</span><br><span class="line">y/n&gt;</span><br></pre></td></tr></table></figure>
+<p>回车，跳过advanced配置</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Use web browser to automatically authenticate rclone with remote?</span><br><span class="line"> * Say Y if the machine running rclone has a web browser you can use</span><br><span class="line"> * Say N if running rclone on a (remote) machine without web browser access</span><br><span class="line">If not sure try Y. If Y failed, try N.</span><br><span class="line"></span><br><span class="line">y) Yes (default)</span><br><span class="line">n) No</span><br><span class="line">y/n&gt; n</span><br><span class="line">---</span><br><span class="line"># 早期的教程出现的是这个提示，都一样，填n</span><br><span class="line">Use auto config?</span><br><span class="line"> * Say Y if not sure</span><br><span class="line"> * Say N if you are working on a remote or headless machine</span><br></pre></td></tr></table></figure>
+<p>输入<code>n</code>，回车</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option config_token.</span><br><span class="line">For this to work, you will need rclone available on a machine that has</span><br><span class="line">a web browser available.</span><br><span class="line">For more help and alternate methods see: https://rclone.org/remote_setup/</span><br><span class="line">Execute the following on the machine with the web browser (same rclone</span><br><span class="line">version recommended):</span><br><span class="line">        rclone authorize &quot;onedrive&quot;</span><br><span class="line">Then paste the result.</span><br><span class="line">Enter a value.</span><br><span class="line">config_token&gt; &#123;&quot;access_token&quot;:&quot;EwCIA8l6BAAUs5+HQn0N+h2FxWzLS31ZgQVuHsYAAUiPSXbjvRMIl44FhCe7tbzWGBBBEK5lvsb3qVW4BRlozGbI9j+YBkF/4a256JnfPFRcBs2d4ILNxz3+V7gVd+DRaI5lcGIWWqFrwpmSuOMgdLTX/pxY7Eg2enKObgQhwvwiTdnPzJtpgKKU49wLWtmV7BV3Oq70KRx/pLLmDnN8bmzo031BEDXx19qQailE0i32AE8nrG0RkD6pnzozxV/RGkko6JdmgccFVKsTJBtMVUhc/w1QQbfUzwlGgMYXUJyqWZu3icFAQrQz/RJJT9W6ufMwc69R8LxDXbhcnlT8ugnrisvZBC4SbYGvOPqctAVA+Ty2wHn5lmHwRg6r+a0DZgAACBWVXmrXqJmwWAJ2eZ561sP4oIIe8JRSWXCOsL62cA09qSxxvuDcI8qTGigO7MGYt7UwflGmaNVRRHwLyWBxxIy8m4i9Dx1aUN+nu6206+u7y4k8VJQ0oSsUkQiaXNOuXT1GMYzuGp49anRd8FqhgBM1bqF70/BwFdvsKRacPfXYGhrMjx8I/fCliULQqkXBoscuUGwTI73RE8LvyurbaMyfTw+Rolw17kFwXhJnRxJNkwlml63YzwILpUNuTw7NPQeC7XTSSdEVcOSeMHY3Y5yAoBN4RJTjYwlFWQZvbVfntbK494eFL4kREPbZJLbtp5g8UeYYzgQytgaiFOlSH0qZQ+5F9VfjRRCSMLkT+9JL6A0QhiIJZueH3iMgVnAETd1W+XJX1WkqopYRRFQsTtL0yPW2dwU4TLbT3cTFS1DlT5cWEK2DXaql5rC3WsMVHul5fR7PibqNitxma273FHrZZrLPSwigHw0IrFPOlMqaWpYZrWobpt198RsJRJJ9qc4VZ9UH/nI2c6McspBmkVaKWdPJR6dLo8sQQP4WtX+qeiVbdSL3lC7/M2X561FJ/8KP7R62CB65O3MSppOiUFugxvg9zWyw+8duOGT5C7dfbmcAlsnsiVtmU2L2zocRdt21HeQS65rn36RHlVzR387ScNPTw70VwoZsbPkDYnRhooAQxbj+gU4YYPp/vC8kOajBwE2T5mO2WgeSp2i/3+D+E4FqJ4xTZvWCEBK/sVfKcwUBEQEJiTGOEFFzOsgFPXMTY+HEB3iylGY8QW74CkYW8GuFHmYFt5ePBNMQUxIWewh1Ag==&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;refresh_token&quot;:&quot;M.C107_BAY.-ChTGrGCDga6UxtlAtm*Q0Gm8J3lq5Xu9El66TMB1fIoNCrDwmP5O0C7EpG4ieS8SHIp1MIqg*KPRbteNSXWT6ED1daC6v7iGS5aI64Guk99n9ZD7Crr5vB6IbUuR3JKfSGvCqMVJFp0pkUbaCJEsaCKk3p7heHlJUHQjtLuuQza34FqGfVCsuSfAKIyrnPu8Be7kqZ7PossR1BlfREmwA9YOQnl1Pg8LFHYnfpUi5HMpf2eTfm34EYPYJ5*CkaUyFTuUU*OZL1V6zeRKGLWm6wIkK9BIyb1QXr5MiEaZbmNAgGGm*zSVagb63Iu6Lh2fEu0MjdJzL*FN1Yikke5vQpu5p3HOVCQHroLIyzfoUTvi&quot;,&quot;expiry&quot;:&quot;2024-02-05T23:54:05.7303698+08:00&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>这里就粘贴你复制的Token进行验证。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option config_type.</span><br><span class="line">Type of connection</span><br><span class="line">Choose a number from below, or type in an existing string value.</span><br><span class="line">Press Enter for the default (onedrive).</span><br><span class="line"> 1 / OneDrive Personal or Business</span><br><span class="line">   \ (onedrive)</span><br><span class="line"> 2 / Root Sharepoint site</span><br><span class="line">   \ (sharepoint)</span><br><span class="line">   / Sharepoint site name or URL</span><br><span class="line"> 3 | E.g. mysite or https://contoso.sharepoint.com/sites/mysite</span><br><span class="line">   \ (url)</span><br><span class="line"> 4 / Search for a Sharepoint site</span><br><span class="line">   \ (search)</span><br><span class="line"> 5 / Type in driveID (advanced)</span><br><span class="line">   \ (driveid)</span><br><span class="line"> 6 / Type in SiteID (advanced)</span><br><span class="line">   \ (siteid)</span><br><span class="line">   / Sharepoint server-relative path (advanced)</span><br><span class="line"> 7 | E.g. /teams/hr</span><br><span class="line">   \ (path)</span><br><span class="line">config_type&gt; 1</span><br></pre></td></tr></table></figure>
+<p>E5和Office 365订阅都选<code>1</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Option config_driveid.</span><br><span class="line">Select drive you want to use</span><br><span class="line">Choose a number from below, or type in your own string value.</span><br><span class="line">Press Enter for the default (c31258141f3f6a15).</span><br><span class="line"> 1 /  (personal)</span><br><span class="line">   \ (c31258141f3f6a15)</span><br><span class="line">config_driveid&gt; 1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Drive OK?</span><br><span class="line"></span><br><span class="line">Found drive &quot;root&quot; of type &quot;personal&quot;</span><br><span class="line">URL: https://onedrive.live.com/?cid=c31258141f3f6a15</span><br><span class="line"></span><br><span class="line">y) Yes (default)</span><br><span class="line">n) No</span><br><span class="line">y/n&gt; y</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Configuration complete.</span><br><span class="line">Options:</span><br><span class="line">- type: onedrive</span><br><span class="line">- token: &#123;&quot;access_token&quot;:&quot;EwCIA8l6BAAUs5+HQn0N+h2FxWzLS31ZgQVuHsYAAUiPSXbjvRMIl44FhCe7tbzWGBBBEK5lvsb3qVW4BRlozGbI9j+YBkF/4a256JnfPFRcBs2d4ILNxz3+V7gVd+DRaI5lcGIWWqFrwpmSuOMgdLTX/pxY7Eg2enKObgQhwvwiTdnPzJtpgKKU49wLWtmV7BV3Oq70KRx/pLLmDnN8bmzo031BEDXx19qQailE0i32AE8nrG0RkD6pnzozxV/RGkko6JdmgccFVKsTJBtMVUhc/w1QQbfUzwlGgMYXUJyqWZu3icFAQrQz/RJJT9W6ufMwc69R8LxDXbhcnlT8ugnrisvZBC4SbYGvOPqctAVA+Ty2wHn5lmHwRg6r+a0DZgAACBWVXmrXqJmwWAJ2eZ561sP4oIIe8JRSWXCOsL62cA09qSxxvuDcI8qTGigO7MGYt7UwflGmaNVRRHwLyWBxxIy8m4i9Dx1aUN+nu6206+u7y4k8VJQ0oSsUkQiaXNOuXT1GMYzuGp49anRd8FqhgBM1bqF70/BwFdvsKRacPfXYGhrMjx8I/fCliULQqkXBoscuUGwTI73RE8LvyurbaMyfTw+Rolw17kFwXhJnRxJNkwlml63YzwILpUNuTw7NPQeC7XTSSdEVcOSeMHY3Y5yAoBN4RJTjYwlFWQZvbVfntbK494eFL4kREPbZJLbtp5g8UeYYzgQytgaiFOlSH0qZQ+5F9VfjRRCSMLkT+9JL6A0QhiIJZueH3iMgVnAETd1W+XJX1WkqopYRRFQsTtL0yPW2dwU4TLbT3cTFS1DlT5cWEK2DXaql5rC3WsMVHul5fR7PibqNitxma273FHrZZrLPSwigHw0IrFPOlMqaWpYZrWobpt198RsJRJJ9qc4VZ9UH/nI2c6McspBmkVaKWdPJR6dLo8sQQP4WtX+qeiVbdSL3lC7/M2X561FJ/8KP7R62CB65O3MSppOiUFugxvg9zWyw+8duOGT5C7dfbmcAlsnsiVtmU2L2zocRdt21HeQS65rn36RHlVzR387ScNPTw70VwoZsbPkDYnRhooAQxbj+gU4YYPp/vC8kOajBwE2T5mO2WgeSp2i/3+D+E4FqJ4xTZvWCEBK/sVfKcwUBEQEJiTGOEFFzOsgFPXMTY+HEB3iylGY8QW74CkYW8GuFHmYFt5ePBNMQUxIWewh1Ag==&quot;,&quot;token_type&quot;:&quot;Bearer&quot;,&quot;refresh_token&quot;:&quot;M.C107_BAY.-ChTGrGCDga6UxtlAtm*Q0Gm8J3lq5Xu9El66TMB1fIoNCrDwmP5O0C7EpG4ieS8SHIp1MIqg*KPRbteNSXWT6ED1daC6v7iGS5aI64Guk99n9ZD7Crr5vB6IbUuR3JKfSGvCqMVJFp0pkUbaCJEsaCKk3p7heHlJUHQjtLuuQza34FqGfVCsuSfAKIyrnPu8Be7kqZ7PossR1BlfREmwA9YOQnl1Pg8LFHYnfpUi5HMpf2eTfm34EYPYJ5*CkaUyFTuUU*OZL1V6zeRKGLWm6wIkK9BIyb1QXr5MiEaZbmNAgGGm*zSVagb63Iu6Lh2fEu0MjdJzL*FN1Yikke5vQpu5p3HOVCQHroLIyzfoUTvi&quot;,&quot;expiry&quot;:&quot;2024-02-05T23:54:05.7303698+08:00&quot;&#125;</span><br><span class="line">- drive_id: c31258141f3f6a15</span><br><span class="line">- drive_type: personal</span><br><span class="line">Keep this &quot;onedrive&quot; remote?</span><br><span class="line">y) Yes this is OK (default)</span><br><span class="line">e) Edit this remote</span><br><span class="line">d) Delete this remote</span><br><span class="line">y/e/d&gt; y</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Current remotes:</span><br><span class="line"></span><br><span class="line">Name                 Type</span><br><span class="line">====                 ====</span><br><span class="line">onedrive             onedrive</span><br><span class="line"></span><br><span class="line">e) Edit existing remote</span><br><span class="line">n) New remote</span><br><span class="line">d) Delete remote</span><br><span class="line">r) Rename remote</span><br><span class="line">c) Copy remote</span><br><span class="line">s) Set configuration password</span><br><span class="line">q) Quit config</span><br><span class="line">e/n/d/r/c/s/q&gt; q</span><br><span class="line">[root@iZ7xvcu671mq0lrlzj6sbqZ ~]#</span><br></pre></td></tr></table></figure>
+<p>然后就配置完成了，选<code>q</code>退出配置。此时rclone 已经成功连接到了 OneDrive 。</p>
+<details class="toggle" ><summary class="toggle-button" style="">如果出现报错：Failed to query available drives: HTTP error 401</summary><div class="toggle-content"><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Failed to query available drives: HTTP error 401 (401 Unauthorized) returned body: &quot;&#123;\&quot;error\&quot;:&#123;\&quot;code\&quot;:\&quot;InvalidAuthenticationToken\&quot;,\&quot;message\&quot;:\&quot;Malformed access token\&quot;,\&quot;innerError\&quot;:&#123;\&quot;date\&quot;:\&quot;2024-02-05T14:33:18\&quot;,\&quot;request-id\&quot;:\&quot;6e2d54e2-00c2-46e1-b756-8d439cf8cb48\&quot;,\&quot;client-request-id\&quot;:\&quot;6e2d54e2-00c2-46e1-b756-8d439cf8cb48\&quot;&#125;&#125;&#125;&quot;</span><br></pre></td></tr></table></figure>
+<p>1.可能是你在win版rclone上授权多次，每次都会更换access_token，但你复制的不是最新的。解决办法：重新授权，重来一次。</p>
+<p>2.也可能是因为你选择了<code>4</code>，世纪互联的office365。正常应该选<code>1</code>的，微软本身也有office 365，属于全球版微软网盘。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Press Enter for the default (global).</span><br><span class="line"> 1 / Microsoft Cloud Global</span><br><span class="line">   \ (global)</span><br><span class="line"> 2 / Microsoft Cloud for US Government</span><br><span class="line">   \ (us)</span><br><span class="line"> 3 / Microsoft Cloud Germany</span><br><span class="line">   \ (de)</span><br><span class="line"> 4 / Azure and Office 365 operated by Vnet Group in China</span><br><span class="line">   \ (cn)</span><br><span class="line"><span class="meta prompt_">region&gt; </span><span class="language-bash">1</span></span><br></pre></td></tr></table></figure>
+<p>解决办法：重新配置，先删除已有的<code>onedrive</code>，然后重新新建。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[root@iZ7xvcu671mq0lrlzj6sbqZ ~]# rclone config</span><br><span class="line">Current remotes:</span><br><span class="line"></span><br><span class="line">Name                 Type</span><br><span class="line">====                 ====</span><br><span class="line">onedrive             onedrive</span><br><span class="line"></span><br><span class="line">e) Edit existing remote</span><br><span class="line">n) New remote</span><br><span class="line">d) Delete remote</span><br><span class="line">r) Rename remote</span><br><span class="line">c) Copy remote</span><br><span class="line">s) Set configuration password</span><br><span class="line">q) Quit config</span><br><span class="line"><span class="meta prompt_">e/n/d/r/c/s/q&gt; </span><span class="language-bash">d</span></span><br><span class="line"></span><br><span class="line">Select remote.</span><br><span class="line">Choose a number from below, or type in an existing value.</span><br><span class="line"> 1 &gt; onedrive</span><br><span class="line"><span class="meta prompt_">remote&gt; </span><span class="language-bash">1</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">No remotes found, make a new one?</span><br><span class="line">n) New remote</span><br><span class="line">s) Set configuration password</span><br><span class="line">q) Quit config</span><br><span class="line"><span class="meta prompt_">n/s/q&gt; </span><span class="language-bash">n</span></span><br></pre></td></tr></table></figure></div></details>
+
+<h1 id="开始手动挂载步骤"><a href="#开始手动挂载步骤" class="headerlink" title="开始手动挂载步骤"></a>开始手动挂载步骤</h1><p><strong>1.安装fuse</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install -y fuse3</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>安装 FUSE3（Filesystem in Userspace），rclone 才能正常挂载远程存储。因为 FUSE 是用于在用户空间中实现文件系统的一种技术，它允许非特权用户在没有 root 权限的情况下挂载文件系统。</p>
+</blockquote>
+<p>如果不装FUSE3就挂载，会报错：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Fatal error: failed to mount FUSE fs: fusermount: exec: &quot;fusermount3&quot;: executable file not found in $PATH</span><br></pre></td></tr></table></figure>
+<p><strong>而且注意，旧版教程用fuse是不行的，现在要用fuse3！不然也会报错。</strong></p>
+<p><strong>2.手动挂载 OneDrive 远程存储到服务器本地文件系统</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rclone mount onedrive:/ /onedrive --copy-links --no-gzip-encoding --no-check-certificate --allow-other --allow-non-empty --umask 000 --daemon</span><br></pre></td></tr></table></figure>
+
+<details class="toggle" ><summary class="toggle-button" style="">指令解析</summary><div class="toggle-content"><p>综下所述，这句命令的意义是将 OneDrive 远程存储挂载到本地文件系统的 &#x2F;onedrive 目录，并配置了一些挂载选项以及挂载点的权限设置。</p>
+<p><code>rclone mount</code>: 这是 rclone 命令行工具的一个子命令，用于挂载远程存储到本地文件系统。</p>
+<p><code>onedrive:</code>: 这是要挂载的远程存储的名称，即 OneDrive。我们刚才就配置了onedrive的远程存储。</p>
+<p><code>/</code>: 你要挂载的OneDrive网盘目录，即挂载到onedrive的根目录。</p>
+<p><code>/onedrive</code>: 这是本地文件系统上的挂载点，即远程存储将会挂载到本地文件系统的 &#x2F;onedrive 目录。</p>
+<p><code>--copy-links</code>: 这个选项指示 rclone 复制符号链接而不是跟踪它们。如果远程存储中包含符号链接，rclone 将会复制它们而不是跟踪它们。</p>
+<p><code>--no-gzip-encoding</code>: 这个选项禁用 gzip 压缩编码。默认情况下，rclone 会对 HTTP 请求进行 gzip 压缩编码以提高传输效率，但此选项会禁用该功能。</p>
+<p><code>--no-check-certificate</code>: 这个选项禁用对 SSL 证书的验证。默认情况下，rclone 会验证远程服务器的 SSL 证书，但此选项会禁用该验证。</p>
+<p><code>--allow-other</code>: 这个选项允许其他用户访问挂载点。这使得其他用户可以访问挂载的 OneDrive。</p>
+<p><code>--allow-non-empty</code>: 这个选项允许挂载点不为空。如果挂载点不为空，rclone 会警告并拒绝挂载。此选项允许挂载非空目录。</p>
+<p><code>--umask 000</code>: 这个选项设置挂载点的 umask 权限掩码为 000，即允许所有用户对挂载点中的文件和目录具有读、写和执行权限。</p>
+<p><code>--daemon</code>：将 rclone 作为守护进程，在关闭终端后可以继续保持任务的运行。</p>
+</div></details>
+
+<details class="toggle" ><summary class="toggle-button" style="">报错解决</summary><div class="toggle-content"><p>挂载后如果出现以下<strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2024/02/06 11:00:31 NOTICE: OneDrive root &#x27;&#x27;: --vfs-cache-mode writes or full is recommended for this remote as it can&#x27;t stream</span><br></pre></td></tr></table></figure>
+<p>OneDrive 远程存储的根目录不能进行流式传输（streaming），并建议您使用 –vfs-cache-mode writes 或 –vfs-cache-mode full 模式。<strong>只是个提示，不管它就行。</strong></p>
+<p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2024/02/06 11:00:32 Fatal error: mount not ready: /onedrive</span><br></pre></td></tr></table></figure>
+<p>意思是挂载点不存在，确保您在执行挂载操作之前已经创建了挂载点。解决办法：<strong>创建这个文件夹↓</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir /onedrive</span><br></pre></td></tr></table></figure>
+
+<p><strong>报错</strong>：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">error: mount not ready: /onedrive</span><br></pre></td></tr></table></figure>
+<p>fuse不行了，要安装fuse3</p>
+<p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#x27;rclone&#x27; is not recognized as an internal or external command,</span><br><span class="line">operable program or batch file.</span><br></pre></td></tr></table></figure>
+<p>看看是不是和服务器终端的连接断了，现在处于本地计算机的终端。重新连接服务器就好。有没和我一样笨笨的小白…</p>
+</div></details>
+
+<blockquote>
+<p><strong>补充知识：</strong><br>挂载完成可输入<code>df -h</code>指令查看挂载情况，会发现最下面多了个onedrive。<br>取消挂载指令：<code>fusermount -qzu /onedrive</code></p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://p3terx.com/archives/rclone-advanced-user-manual-common-command-parameters.html">补充知识：rclone命令语法</a></p>
+<blockquote>
+<p><strong>补充知识（下一步马上用到）</strong>：<strong>vim</strong> 的简单使用<a target="_blank" rel="noopener" href="https://www.runoob.com/linux/linux-vim.html">Linux vi&#x2F;vim - 菜鸟教程</a>，<br>在 Vim 中按下 <code>i</code> 进入插入模式后，此时最底部会显示<code>-- INSERT --</code>表示可编辑<br>完成编辑后，您可以按下 <code>Esc</code> 键，底下的<code>-- INSERT --</code>消失表示退出编辑模式，此时你随便输入都不会修改文件内容<br>然后按下 <code>shift</code> + <code>:</code> 进入命令模式。（如果没反应，先按<code>shift</code>切换为英文输入再试一次）<br>在命令模式中，您可以输入以下命令来保存和退出：</p>
+<ul>
+<li>w：保存文件</li>
+<li>q：退出vim编辑器</li>
+<li>wq：保存并退出</li>
+<li>q!：强制退出Vim 编辑器，不保存修改。</li>
+</ul>
+</blockquote>
+<p><strong>3.自动上传脚本 修改配置</strong></p>
+<p>首先修改aria2.conf配置</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vim /root/.aria2c/aria2.conf</span><br></pre></td></tr></table></figure>
+<p>打开 Aria2 配置文件，跳出来一大串配置信息。按↑↓←→可以移动光标查看。<br>按<code>i</code>进入编辑模式，，往下翻，找到<code>on-download-complete=/root/.aria2c/clean.sh</code>，把<code>clean</code>改为<code>upload</code>。<br>进入文件最末尾，新添以下内容：↓(这里又是个坑，提前解决掉)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 不进行证书校验</span><br><span class="line">check-certificate=false</span><br></pre></td></tr></table></figure>
+<p>按下 <code>Esc</code> 键退出插入模式，，接着按<code>shift 和 :</code>出现冒号进入命令模式<br>输入<code>wq</code>然后按回车，表示保存并退出。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061505830.png"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061505619.png"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061505076.png"></p>
+<p>然后修改上传脚本script.conf</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim /root/.aria2c/script.conf</span><br></pre></td></tr></table></figure>
+<p>根据个人需要进行配置。可以只修改这一句：把<code>OneDrive</code>改成<code>onedrive</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 网盘名称(RCLONE 配置时填写的 name)</span><br><span class="line">drive-name=onedrive</span><br></pre></td></tr></table></figure>
+
+<p>然后就全部配置好啦！</p>
+<p><strong>重启Aria2并测试上传脚本</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">service aria2 restart</span><br><span class="line"></span><br><span class="line">/root/.aria2c/upload.sh</span><br></pre></td></tr></table></figure>
+<p>出现<code>success</code>表示连接成功！</p>
+<p>然后可以去AriaNg下载文件。在服务器的<code>/root/downloads</code>会有该文件(红名)和该文件的控制文件<code>文件名.aria2</code>。<br><code>.aria2</code>文件用于管理和控制对应文件的下载，下载完成后会自动删除。<br>在下载完成后文件就会从服务器上传到Onedrive中，上传成功后Aria2下载的源文件也会删除。</p>
+<p>疑问：在ls时，文件名变红什么意思？如图：<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061701175.png"></p>
+<h1 id="设置开机自动挂载【可选】"><a href="#设置开机自动挂载【可选】" class="headerlink" title="设置开机自动挂载【可选】"></a>设置开机自动挂载【可选】</h1><blockquote>
+<p><strong>服务器重启后，rclone不会自动挂载，需要重新输入挂载指令↓手动挂载。</strong>粘贴指令不麻烦，怕就怕会忘记。</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rclone mount onedrive:/ /onedrive --copy-links --no-gzip-encoding --no-check-certificate --allow-other --allow-non-empty --umask 000 --daemon</span><br></pre></td></tr></table></figure>
+
+<p>所以我们可以设置开机自动挂载[可选]</p>
+<p><strong>1.下载自动挂载脚本 rcloned</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -N --no-check-certificate https://raw.githubusercontent.com/x91270/Centos/master/rcloned</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.修改自动挂载脚本</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim rcloned</span><br></pre></td></tr></table></figure>
+<p>通过vim编辑器修改好以下内容</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">NAME=&quot;onedrive&quot; #Rclone配置时填写的name</span><br><span class="line">REMOTE=&#x27;/&#x27;  #远程文件夹，onedrive 网盘里的挂载的一个文件夹，留空为整个网盘</span><br><span class="line">LOCAL=&#x27;/onedrive&#x27;  #挂载地址，VPS本地挂载目录</span><br></pre></td></tr></table></figure>
+<p>该填写方法会将<strong>网盘根目录</strong>挂载到<strong>服务器根目录下的onedrive文件夹</strong>下。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061505474.png"></p>
+<p><strong>3.设置挂载脚本开机自动执行</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mv rcloned /etc/init.d/rcloned</span><br><span class="line">chmod +x /etc/init.d/rcloned</span><br><span class="line">chkconfig rcloned on</span><br><span class="line">bash /etc/init.d/rcloned start</span><br></pre></td></tr></table></figure>
+<p>然后显示<code>[信息] rclone (PID 9153) 正在运行...</code>表示开启自启挂载成功。</p>
+<p><strong>补充知识：</strong></p>
+<blockquote>
+<p><strong>管理自启挂载</strong><br>开始挂载 <code>bash /etc/init.d/rcloned start</code><br>停止挂载 <code>bash /etc/init.d/rcloned stop</code><br>重新挂载 <code>bash /etc/init.d/rcloned restart</code><br>查看日志 <code>tail -f /$HOME/.rclone/rcloned.log</code></p>
+</blockquote>
+<p><strong>卸载自启挂载【如果你确定的话】</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bash /etc/init.d/rcloned stop</span><br><span class="line">chkconfig rcloned off # CentOS</span><br><span class="line">rm -f /etc/init.d/rcloned</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.测试是否可用</strong></p>
+<p>打开自己专属的AriaNG网站(可以收藏该网址)，新建下载任务，输入下载链接，下载一个文件来测试。</p>
+<p>这里我们用win的rclone下载地址来测试: <a target="_blank" rel="noopener" href="https://downloads.rclone.org/v1.65.2/rclone-v1.65.2-windows-amd64.zip">https://downloads.rclone.org/v1.65.2/rclone-v1.65.2-windows-amd64.zip</a></p>
+<p>看到它在下载文件，下载完后就会上传OneDrive，等一会后就可在OneDrive看到该文件。这里的下载和上传速度取决于你的云服务器的宽带，与本地计算机网络无关。</p>
+<p><strong>如果你出错（本教程不会）：</strong>点击下载发现进度卡在0%，<strong>又是个坑！</strong></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061500563.png"></p>
+<p><strong>出错原因：</strong></p>
+<p>通常情况下，Aria2 在下载 HTTPS 链接时会验证 SSL 证书的有效性，确保连接的安全性。但有时候，可能会遇到一些情况，比如下载的站点使用的是自签名证书或者证书过期等，导致 Aria2 在验证证书时出现问题，无法下载文件。</p>
+<p><strong>解决办法：</strong></p>
+<p>可以在配置文件中加入一句<code>check-certificate=false</code>，这个选项的作用是告诉 Aria2 在下载文件时不要验证 SSL 证书。</p>
+<p>打开<code>aria2.conf</code>配置文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim /root/.aria2c/aria2.conf</span><br></pre></td></tr></table></figure>
+<p>在文件末尾加上以下内容，保存并退出：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">不进行证书校验</span></span><br><span class="line">check-certificate=false</span><br></pre></td></tr></table></figure>
+
+
+<p>然后重启下Aria2，它就自动下载了</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">service aria2 restart</span><br></pre></td></tr></table></figure>
+
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402061458270.png"></p>
+<div class="note primary flat"><h1 id="其他问题-疑问"><a href="#其他问题-疑问" class="headerlink" title="其他问题&#x2F;疑问"></a>其他问题&#x2F;疑问</h1></div>
+
+<blockquote>
+<p>1.如果我们填的是百度网盘分享网址，例如：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1UOZNCyy_YoSNeiidD5qc3Q?pwd=pkgb">https://pan.baidu.com/s/1UOZNCyy_YoSNeiidD5qc3Q?pwd=pkgb</a><br>它会下载该文件的详情页的html代码，名称为init，大小十几K。<strong>百度网盘链接无法直接通过地址下载。</strong><br>我们需要找到一个解析百度网盘直链的网站，把链接解析为直链再放到AriaNG里下载。或者保存到你的网盘，借助油猴的<code>百度网盘千千下载助手</code>插件在网页版百度网盘获取直链。</p>
+</blockquote>
+<blockquote>
+<p>2.太多文件上传到OneDrive根目录很乱，<strong>有没有办法修改下载路径？</strong><br>Aria2一个下载任务可以填多个下载地址。点击新建后，在<code>链接</code>按钮旁边有个<code>选项</code>按钮，里面下载路径可以自定义。到时候本次任务下载的所有文件都会放在OneDrive以根目录为起点的的自定义文件夹下。<br>——<br>输入指令<code>cd /onedrive &amp;&amp; ls</code>可以看到你的OneDrive文件在服务器上的映射。但是没有实际文件，全都在网盘里。<br>你可以在这里操作文件，然后网盘内也会做出对应的修改。例如：在服务器进入onedrive文件夹，使用<code>rm -i 文件路径/文件名</code>指令删除一个文件，刷新OneDrive软件，发现这个文件被删没了（慎重）。</p>
+</blockquote>
+<p>ChatGPT：rclone挂载方式的好处是，您可以像操作本地文件一样操作云存储中的文件，例如复制、粘贴、编辑等，但是文件实际上都在OneDrive里而不是服务器上。如果您在挂载的 OneDrive 文件夹中删除了某个文件，实际上相当于在 OneDrive 云存储中删除了该文件。因为 rclone 挂载的是实时的 OneDrive 文件系统，所以对挂载点中的文件进行的任何更改都会立即反映到 OneDrive 中。</p>
+<blockquote>
+<p><strong>3.下载完，服务器上传OneDrive时，怎么查看进度？</strong><br>不懂，再说。但是好像是一次性下载完所有任务再一次性上传（我不确定）</p>
+</blockquote>
+<blockquote>
+<p><strong>4.rclone挂载的文件系统的更新有一定滞后性，默认5分钟刷新一次（好像更短），如果下载新文件或者上传OneDrive成功则立即更新一次（不一定）。</strong><br>ChatGPT说rclone每隔5分钟(默认)会自动刷新挂载的文件系统，即重新获取一次目录结构，以确保挂载的文件系统与远程存储同步。可通过修改<code>dir-cache-time</code>来修改间隔时间。【注意】刷新频率的增加可能会增加系统资源的使用和网络流量。<br>（这个指令用不了）</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rclone mount onedrive:/ /onedrive --dir-cache-time 2m0s</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>5.为什么&#x2F;root&#x2F;downloads会有残留文件？AriaNG删除时没有成功给Aria2发送指令导致没有删除文件、或者下载完没有自动上传(漏了？)OneDrive？</strong></p>
+</blockquote>
+<blockquote>
+<p><strong>有其他疑问，欢迎补充！</strong></p>
+</blockquote>
+</article><div class="post-copyright"><div class="copyright-cc-box"><i class="anzhiyufont anzhiyu-icon-copyright"></i></div><div class="post-copyright__author_box"><a class="post-copyright__author_img" href="/" title="头像"><img class="post-copyright__author_img_back" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" title="头像" alt="头像"><img class="post-copyright__author_img_front" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" title="头像" alt="头像"></a><div class="post-copyright__author_name">卢孟德</div><div class="post-copyright__author_desc">呼吸不停，学习不止</div></div><div class="post-copyright__post__info"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="https://blog.lumengde.com/posts/ffab.html">原创</a><a class="post-copyright-title"><span onclick="rm.copyPageUrl('https://blog.lumengde.com/posts/ffab.html')">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</span></a></div><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="rewardLeftButton"><div class="post-reward" onclick="anzhiyu.addRewardMask()"><div class="reward-button button--animated" title="赞赏作者"><i class="anzhiyufont anzhiyu-icon-hand-heart-fill"></i>打赏作者</div><div class="reward-main"><div class="reward-all"><span class="reward-title">感谢你赐予我前进的力量</span><ul class="reward-group"><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul><a class="reward-main-btn" href="/about/#about-reward" target="_blank"><div class="reward-text">赞赏者名单</div><div class="reward-dec">因为你们的支持让我意识到写文章的价值🙏</div></a></div></div></div><div id="quit-box" onclick="anzhiyu.removeRewardMask()" style="display: none"></div></div><div class="shareRight"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="https://blog.lumengde.com/posts/ffab.html"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘&amp;url=https://blog.lumengde.com/posts/ffab.html&amp;pic=https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=1b6043dd-3e16-77e9-5056-b2372d01e615" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><script>function copyCurrentPageUrl() {
+  var currentPageUrl = window.location.href;
+  var input = document.createElement("input");
+  input.setAttribute("value", currentPageUrl);
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}</script><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="copyCurrentPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div></div></div><div class="post-copyright__notice"><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://blog.lumengde.com" target="_blank">学习笔记本</a>！</span></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__category-list"><a class="post-meta__box__categoryes" href="/categories/VPS%E5%BA%94%E7%94%A8%E6%90%AD%E5%BB%BA/"><span class="categoryes-punctuation"> <i class="anzhiyufont anzhiyu-icon-inbox"></i></span>VPS应用搭建<span class="categoryesPageCount">3</span></a></div><div class="post-meta__box__tag-list"><a class="post-meta__box__tags" href="/tags/VPS/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>VPS<span class="tagsPageCount">3</span></a></div></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=70b0a335-fba6-86ae-c529-9a6a022a2da4" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"/><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer="defer"></script></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/ee37.html"><img class="prev-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=eae1284c-0173-e34d-c957-9785411925bc" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">机场节点订阅</div></div></a></div><div class="next-post pull-right"><a href="/posts/c7fa.html"><img class="next-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=216bf9f0-2d0d-e281-1e8d-f10afe509c3c" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">通过GitHook部署Hexo博客到VPS上</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="anzhiyufont anzhiyu-icon-thumbs-up fa-fw" style="font-size: 1.5rem; margin-right: 4px"></i><span>喜欢这篇文章的人也看了</span></div><div class="relatedPosts-list"><div><a href="/posts/c7fa.html" title="通过GitHook部署Hexo博客到VPS上"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=216bf9f0-2d0d-e281-1e8d-f10afe509c3c" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-02-23</div><div class="title">通过GitHook部署Hexo博客到VPS上</div></div></a></div><div><a href="/posts/361a.html" title="搭建Hexo-Webstack主题个人导航站并部署到Github和VPS"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=70b0a335-fba6-86ae-c529-9a6a022a2da4" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-02-23</div><div class="title">搭建Hexo-Webstack主题个人导航站并部署到Github和VPS</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="anzhiyufont anzhiyu-icon-comments"></i><span> 评论</span></div><div class="comment-randomInfo"><a onclick="anzhiyu.addRandomCommentInfo()" href="javascript:void(0)">匿名评论</a><a href="/privacy" style="margin-left: 4px">隐私政策</a></div></div><div class="comment-wrap"><div><div id="waline-wrap"></div></div></div></div><div class="comment-barrage"></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info__sayhi" id="author-info__sayhi" onclick="anzhiyu.changeSayHelloText()"></div><div class="author-info-avatar"><img class="avatar-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-status"><img class="g-status" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://bu.dusays.com/2021/01/15/cba0a1130e789.png" alt="status"/></div></div><div class="author-info__description"><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">这有关于<b style="color:#fff">编程、建站、VPS</b>相关的文章和笔记，还有<b style="color:#fff">其他方面</b>的一些文章。</div><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">相信你可以在这里找到对你有用的<b style="color:#fff">知识</b>和<b style="color:#fff">教程</b>。</div></div><div class="author-info__bottom-group"><a class="author-info__bottom-group-left" href="/"><h1 class="author-info__name">卢孟德</h1><div class="author-info__desc">呼吸不停，学习不止</div></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/lumengde123?tab=stars" target="_blank" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/37080841/favlist" target="_blank" title="BiliBili"><i class="anzhiyufont anzhiyu-icon-bilibili"></i></a></div></div></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bullhorn anzhiyu-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来看我的博客鸭~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Aria2-%E5%92%8C-AriaNG%E7%9A%84%E5%AE%89%E8%A3%85"><span class="toc-number">2.</span> <span class="toc-text">Aria2 和 AriaNG的安装</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96Token%E5%B9%B6%E9%85%8D%E7%BD%AErclone"><span class="toc-number">3.</span> <span class="toc-text">获取Token并配置rclone</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BDWin%E7%89%88rclone%E8%8E%B7%E5%8F%96token"><span class="toc-number">3.1.</span> <span class="toc-text">下载Win版rclone获取token</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85rclone%E5%B9%B6%E9%85%8D%E7%BD%AE"><span class="toc-number">3.2.</span> <span class="toc-text">服务器安装rclone并配置</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B%E6%89%8B%E5%8A%A8%E6%8C%82%E8%BD%BD%E6%AD%A5%E9%AA%A4"><span class="toc-number">4.</span> <span class="toc-text">开始手动挂载步骤</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%BC%80%E6%9C%BA%E8%87%AA%E5%8A%A8%E6%8C%82%E8%BD%BD%E3%80%90%E5%8F%AF%E9%80%89%E3%80%91"><span class="toc-number">5.</span> <span class="toc-text">设置开机自动挂载【可选】</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E9%97%AE%E9%A2%98-%E7%96%91%E9%97%AE"><span class="toc-number">6.</span> <span class="toc-text">其他问题&#x2F;疑问</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/361a.html" title="搭建Hexo-Webstack主题个人导航站并部署到Github和VPS"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=70b0a335-fba6-86ae-c529-9a6a022a2da4" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="搭建Hexo-Webstack主题个人导航站并部署到Github和VPS"/></a><div class="content"><a class="title" href="/posts/361a.html" title="搭建Hexo-Webstack主题个人导航站并部署到Github和VPS">搭建Hexo-Webstack主题个人导航站并部署到Github和VPS</a><time datetime="2024-02-23T11:06:41.000Z" title="发表于 2024-02-23 19:06:41">2024-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/c7fa.html" title="通过GitHook部署Hexo博客到VPS上"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=216bf9f0-2d0d-e281-1e8d-f10afe509c3c" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="通过GitHook部署Hexo博客到VPS上"/></a><div class="content"><a class="title" href="/posts/c7fa.html" title="通过GitHook部署Hexo博客到VPS上">通过GitHook部署Hexo博客到VPS上</a><time datetime="2024-02-23T09:31:50.000Z" title="发表于 2024-02-23 17:31:50">2024-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/ffab.html" title="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=1b6043dd-3e16-77e9-5056-b2372d01e615" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"/></a><div class="content"><a class="title" href="/posts/ffab.html" title="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</a><time datetime="2024-02-06T07:28:59.000Z" title="发表于 2024-02-06 15:28:59">2024-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/ee37.html" title="机场节点订阅"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=eae1284c-0173-e34d-c957-9785411925bc" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="机场节点订阅"/></a><div class="content"><a class="title" href="/posts/ee37.html" title="机场节点订阅">机场节点订阅</a><time datetime="2024-01-04T01:00:00.000Z" title="发表于 2024-01-04 09:00:00">2024-01-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/e449.html" title="v2rayN-科学上网工具"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202401152106059.jpg?_r_=3c27d36c-c465-493f-d646-4b3ff959b715" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="v2rayN-科学上网工具"/></a><div class="content"><a class="title" href="/posts/e449.html" title="v2rayN-科学上网工具">v2rayN-科学上网工具</a><time datetime="2024-01-04T00:00:00.000Z" title="发表于 2024-01-04 08:00:00">2024-01-04</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2024 By <a class="footer-bar-link" href="/" title="卢孟德" target="_blank">卢孟德</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">2</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">站点</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="安知鱼的博客"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="安知鱼的博客"/><span class="back-menu-item-text">安知鱼的博客</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/posts/d50a.html" title="标签语法"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="标签语法"/><span class="back-menu-item-text">标签语法</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://docs.anheyu.com/advanced/#%E6%90%9C%E7%B4%A2%E7%B3%BB%E7%BB%9F" title="官方文档"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="官方文档"/><span class="back-menu-item-text">官方文档</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://webstack.lumengde.com/" title="晚风导航"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="晚风导航"/><span class="back-menu-item-text">晚风导航</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 归档</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/fcircle/"><i class="anzhiyufont anzhiyu-icon-artstation faa-tada" style="font-size: 0.9em;"></i><span> 朋友圈</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/air-conditioner/"><i class="anzhiyufont anzhiyu-icon-fan faa-tada" style="font-size: 0.9em;"></i><span> 小空调</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" target="_blank" rel="noopener" href="https://umami.lumengde.com/share/ZSWmgM662ZphmxH2/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E6%9C%AC"><span> 访客数据</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/Hexo/" style="font-size: 0.88rem;">Hexo<sup>3</sup></a><a href="/tags/VPS/" style="font-size: 0.88rem;">VPS<sup>3</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 0.88rem;">科学上网<sup>2</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="anzhiyufont anzhiyu-icon-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="8152976493" server="netease" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume="0.7"></meting-js></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/8802438608&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.5/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.cbd.int/pangu@4.0.7/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("04/01/2021 00:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2024 By 安知鱼 V1.6.12",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 卢孟德 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><script>(() => {
+  const initWaline = () => {
+    const waline = Waline.init(Object.assign({
+      el: '#waline-wrap',
+      serverURL: 'blog-waline-sepia-two.vercel.app',
+      pageview: false,
+      dark: 'html[data-theme="dark"]',
+      path: window.location.pathname,
+      comment: false,
+    }, {"requiredMeta":["nick","mail"],"locale":{"placeholder":"昵称和邮箱为必填项，为了您能及时收到相关回复的邮件通知，请确保邮箱的正确性！"}}))
+  }
+
+  const loadWaline = async () => {
+    if (typeof Waline === 'object') initWaline()
+    else {
+      await getCSS('https://cdn.cbd.int/@waline/client@2.15.5/dist/waline.css')
+      await getScript('https://cdn.cbd.int/@waline/client@2.15.5/dist/waline.js')
+      initWaline()
+    }
+  }
+
+  if ('Waline' === 'Waline' || !false) {
+    if (false) anzhiyu.loadComment(document.getElementById('waline-wrap'),loadWaline)
+    else setTimeout(loadWaline, 0)
+  } else {
+    window.loadOtherComment = loadWaline
+  }
+})()</script><input type="hidden" name="page-type" id="page-type" value="post"></div><script>window.addEventListener('load', () => {
+  const changeContent = content => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'data-lazy-src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'></a>`
+        }
+
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}' title='${array[i].content}'>${array[i].content}</a>
+        <div class='name'><span>${array[i].nick} / </span><time datetime="${array[i].date}">${anzhiyu.diffDate(array[i].date, true)}</time></div>
+        </div></div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom && ($dom.innerHTML= result)
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const getComment = async () => {
+    try {
+      const res = await fetch('blog-waline-sepia-two.vercel.app/api/comment?type=recent&count=6', { method: 'GET' })
+      const result = await res.json()
+      const walineArray = result.data.map(e => {
+        return {
+          'content': changeContent(e.comment),
+          'avatar': e.avatar,
+          'nick': e.nick,
+          'url': e.url + '#' + e.objectId,
+          'date': e.time || e.insertedAt
+        }
+      })
+      saveToLocal.set('waline-newest-comments', JSON.stringify(walineArray), 10/(60*24))
+      generateHtml(walineArray)
+    } catch (err) {
+      console.error(err)
+      const $dom = document.querySelector('#card-newest-comments .aside-list')
+      $dom.textContent= "无法获取评论，请确认相关配置是否正确"
+    }
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('waline-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><script>var visitorMail = "";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>
