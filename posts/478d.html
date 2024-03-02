@@ -1,0 +1,655 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>一文理清Nginx-端口-反向代理等概念 | 学习笔记本</title><meta name="author" content="卢孟德"><meta name="copyright" content="卢孟德"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="一文理清Nginx-端口-反向代理等概念"><meta name="application-name" content="一文理清Nginx-端口-反向代理等概念"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="一文理清Nginx-端口-反向代理等概念"><meta property="og:url" content="https://blog.lumengde.com/posts/478d.html"><meta property="og:site_name" content="学习笔记本"><meta property="og:description" content="前言本文涉及的名词：计算机网络、端口、OSI模型、HTTP、TCP、Nginx、反向代理、负载均衡 今天在学习Nginx的时候，理不清端口是什么，有什么用。所以就和ChatGPT交流，并浏览了一些文章，整理出了一个较为完整的知识块，本片文章就来记录一下学习成果。 云服务器&amp;amp;VPS区别首先一台"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403021959182.webp"><meta property="article:author" content="卢孟德"><meta property="article:tag"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403021959182.webp"><meta name="description" content="前言本文涉及的名词：计算机网络、端口、OSI模型、HTTP、TCP、Nginx、反向代理、负载均衡 今天在学习Nginx的时候，理不清端口是什么，有什么用。所以就和ChatGPT交流，并浏览了一些文章，整理出了一个较为完整的知识块，本片文章就来记录一下学习成果。 云服务器&amp;amp;VPS区别首先一台"><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://blog.lumengde.com/posts/478d"><link rel="preconnect" href="//cdn.cbd.int"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="xxx"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/swiper/swiper.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: undefined,
+  postHeadAiDescription: {"enable":true,"gptName":"AnZhiYu","mode":"local","switchBtn":false,"btnLink":"https://afdian.net/item/886a79d4db6711eda42a52540025c377","randomNum":3,"basicWordCount":1000,"key":"xxxx","Referer":"https://xx.xx/"},
+  diytitle: {"enable":true,"leaveTitle":"w(ﾟДﾟ)w 不要走！再看看嘛！","backTitle":"♪(^∇^*)欢迎肥来！"},
+  LA51: undefined,
+  greetingBox: {"enable":true,"default":"晚上好👋","list":[{"greeting":"晚安😴","startTime":0,"endTime":5},{"greeting":"早上好鸭👋, 祝你一天好心情！","startTime":6,"endTime":9},{"greeting":"上午好👋, 状态很好，鼓励一下～","startTime":10,"endTime":10},{"greeting":"11点多啦, 在坚持一下就吃饭啦～","startTime":11,"endTime":11},{"greeting":"午安👋, 宝贝","startTime":12,"endTime":14},{"greeting":"🌈充实的一天辛苦啦！","startTime":14,"endTime":18},{"greeting":"19点喽, 奖励一顿丰盛的大餐吧🍔。","startTime":19,"endTime":19},{"greeting":"晚上好👋, 在属于自己的时间好好放松😌~","startTime":20,"endTime":24}]},
+  twikooEnvId: '',
+  commentBarrageConfig:undefined,
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: {"mode":"api","api":"https://img2color-go.vercel.app/api?img=","cover_change":true},
+  authorStatus: {"skills":null},
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":450},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    simplehomepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: 卢孟德","link":"链接: ","source":"来源: 学习笔记本","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#425AEF","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: true,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: '学习笔记本',
+  title: '一文理清Nginx-端口-反向代理等概念',
+  postAI: '',
+  pageFillDescription: '前言, 云服务器ampVPS区别, 端口的概念, Nginx介绍, 浏览器访问域名过程, VPS处理浏览器请求过程, 反向代理, 端口ampTCPx2FUDP前言本文涉及的名词计算机网络端口模型反向代理负载均衡今天在学习的时候理不清端口是什么有什么用所以就和交流并浏览了一些文章整理出了一个较为完整的知识块本片文章就来记录一下学习成果云服务器区别首先一台云服务器一般为一个独立的虚拟计算机实例它还可以创建出多个虚拟机实例即虚拟专用服务器每个都有自己独立的操作系统计算资源和网络配置它们之间是相互隔离的因此每个都可以在云服务器上独立地使用端口来提供服务这些端口是相互隔离的不会相互冲突而只是个运行在上的服务器软件端口的概念参考文章深入理解什么是端口知乎当我们在浏览器输入域名时其实是要通过查找获取目标服务器的然后根据端口来访问服务器一个地址在全球范围内唯一标识一个设备从而使设备能够相互识别和连接一般来讲浏览器会使用或协议至于是哪个就看域名前是用还是而这两个协议分别指定的是和端口为什么会有端口这个概念呢首先需要了解的概念就是进程间通讯浏览器发出请求服务器响应请求这其实是两个进程之间的通讯而一台服务器上运行着非常多的进程和服务例如服务服务服务进程等等所以浏览器的进程想要与服务器进行通讯仅仅知道服务器是不够的还需要给出进程这样服务器才知道由哪个进程去响应请求但是为什么引入端口的概念而不是使用进程呢简单来看有这几个原因客户端无法知道服务端对应进程的服务端对应进程重启后会变每个网站的进程可能不同这就导致客户端强依赖于服务端要与服务端通讯就要知道服务端对应进程的为了解决这些问题就引入了端口客户端总是把请求发送到或端口并反过来要求服务端去监听端口的通讯并处理请求由此形成了反向依赖如果一个进程想要提供服务它启动之后就要去绑定相关的端口如果该端口被其他进程占用了就会绑定失败如果一个进程没有关闭又试图启动另一个则这两个进程都用了相同的端口就会产生冲突绑定端口后就会持续监听当有请求到来时就去响应端口的存在解耦了客户端与服务端之间的强依赖整个体系变得很灵活以现实为例的话可以把服务端当作市政大厅那么端口就是一个个的服务窗口从客户端的角度窗口就是专门处理请求相关的业务类似的常见情况下窗口用于处理传输业务窗口处理文件传输业务用来处理的连接和数据交互业务从服务端角度窗口默认是空的如果想要提供哪些服务那就需要运行相应的进程来占用窗口处理业务例如软件监听服务器的端口以提供服务软件监听端口来提供跟数据库有关的服务在这里和可以理解为窗口的工作人员介绍是一款流行的服务器软件既是软件也是进程同时也可以被称为服务器软件作为软件提供了一系列的功能和特性包括但不限于服务器反向代理负载均衡缓存加速加密虚拟主机支持等的软件版本通常包含了可执行文件和配置文件等组成部分进程当被启动时操作系统会创建一个进程通常是进程该进程会加载的配置文件并启动多个工作进程通常是进程来处理客户端的请求每个进程都是操作系统中正在运行的程序的实例拥有自己的代码数据堆栈等信息服务器也可以被称为服务器这是因为它提供了服务器的功能能够接收客户端的请求并返回相应的响应即可以处理客户端和服务器之间的通信如果把当作市政大厅的话端口可以理解为每个服务窗口窗口里面的工作人员就是提供相应服务的应用程序由于本身不提供服务所以需要安装服务器软件如等才可以作为服务器提供服务当安装好并启动后会监听端口可以理解为成为了窗口的工作人员一个端口只有一个服务能监听否则会冲突可以创建多个进程所以在端口可以监听很多个网站的请求当有客户端向本机发送请求时会通过端口就会被监听到并根据其配置文件执行相应操作浏览器访问域名过程当你在浏览器输入网址时就能得到网页文件并加载出页面那在这过程中发生了什么呢域名解析解析点击域名后浏览器首先会检查自己的缓存看是否已经解析过这个域名对应的地址如果有就直接使用缓存的地址如果没有缓存或缓存过期浏览器会向本地系统的解析器发送一个查询请求以获取该域名对应的地址本地系统的解析器会查询本地缓存文件如果没有找到就会向互联网上的服务器发送查询请求解析过程服务器会按照递归查询或迭代查询的方式依次向上级服务器查询从根域名服务器顶级域名服务器权威服务器权威服务器会返回该域名对应的地址给本地解析器然后本地解析器将地址返回给浏览器建立连接一旦浏览器获得了目标服务器的地址就会使用解析得到的地址和默认端口或者默认端口向服务器发起一个连接请求通过三次握手请求建立一个与目标服务器的连接如果是请求浏览器还需要进行握手过程来建立安全连接发送请求一旦连接建立成功浏览器就会构造请求报文其中包含请求的方法等目标请求头部等信息通过该连接浏览器将构造好的一个请求报文发送给目标服务器这个请求包含了你想要获取的资源的信息比如网页文件图片视频等服务器响应目标服务器收到了浏览器发送的请求后会根据请求的内容进行处理并生成一个响应这个响应包含了请求的资源以及一些其他的信息比如状态码头部信息等接收响应一旦服务器生成了响应它会通过连接发送给浏览器浏览器接收到了响应后会解析响应内容并根据内容显示网页或执行其他操作例如浏览器获取了页面就会解析该页面的内容如果发现页面中引用了其他资源比如文件文件图片等则会根据这些链接向服务器发起额外的请求来获取这些资源这些额外的请求是在同一个连接上进行的因为连接是持久的在该连接上可以发送多个请求和接收多个响应所以浏览器多次向服务器发送请求来获取文件服务器则多次响应直到最后完全加载完这个文件并进行页面渲染最终呈现给用户关闭连接当一个网页中的所有资源都加载完毕后浏览器会保持连接开启一段时间以便处理可能的后续请求这个时间被称为持久连接如果在这段时间内用户点击了页面上的按钮或者进行了其他交互操作浏览器会根据操作构造并发起相应的请求如果这些请求涉及到新的资源比如新的页面图片脚本等浏览器会在同一个连接上发送这些请求并继续保持连接只有当一段时间内没有新的请求发送到服务器或者服务器主动关闭连接或者达到了连接持续时间的最大限制时浏览器才会关闭连接持久连接会持续一段时间目的是为了减少后续请求的延迟提高页面加载速度但不会持续太久浏览器会在一定时间后自动关闭未使用的持久连接并释放资源目的是节约服务器资源处理浏览器请求过程从服务器角度来看发生了什么呢这里以网站项目为例先来讲讲上的项目关联哪些软件首先项目会放在站点文件目录服务器为接受然后反代到服务器作为后端服务器在服务器或中启动了应用程序配置连接到了数据库当监听端口接收到请求后查找匹配的服务器块根据请求的域名和请求的在配置文件中查找匹配的服务器块例如请求域名为则在监听端口为的块中找到匹配的服务块处理请求转发请求给后端应用程序在示例配置中包含了反向代理指令将请求转发到了这意味着后端应用程序在本地的端口上监听请求根据该指令将请求转发给后端应用程序如或其他服务器处理后端应用程序处理请求后端应用程序项目接收到请求后根据请求的和其他信息执行相应的处理逻辑可能涉及到路由视图函数等项目通常使用服务器如来监听本地的端口并处理传入的请求后端应用程序会根据路由和视图函数等逻辑来处理请求执行相应的业务逻辑查询数据库等操作这里传入的请求会在的中匹配到对应的视图函数在中视图函数会执行业务逻辑处理请求访问数据库等等生成响应后端应用程序处理完请求后生成响应包括所需的内容状态码等返回响应给后端应用程序将生成的响应返回给通常是通过本地的某个端口例如端口返回响应给客户端接收到来自后端应用程序的响应后将其返回给客户端浏览器接收到响应后根据响应的内容进行页面渲染或其他相应操作至此完成了整个请求响应周期反向代理参考文章终于有人把正向代理和反向代理解释的明明白白了腾讯云开发者社区腾讯云配置反向代理一篇搞定知乎先来说下什么是正向代理简单举个例子你想在国内访问但是访问被长城防御挡下了如果你以既能连接国内网络也能连接国外网络的服务器作为中转那么就能顺利访问国外的网站所谓的搭梯子也是这个原理这中间用来做跳板的服务器就叫做正向代理而除了能提供服务之外还能进行反向代理反向代理是的一个重要功能它允许接收客户端的请求并将这些请求转发到后端的真实服务器不一定是本机然后将后端服务器的响应返回给客户端反向代理的好处是隐藏了后端服务器的真实信息提供了负载均衡缓存安全过滤等功能同时也增强了网站的可靠性和安全性正向代理和反向代理的区别正向代理其实是客户端的代理帮助客户端访问其无法访问的服务器资源反向代理则是服务器的代理帮助服务器做负载均衡安全防护等正向代理中服务器不知道真正的客户端到底是谁以为访问自己的就是真实的客户端而在反向代理中客户端不知道真正的服务器是谁以为自己访问的就是真实的服务器正向代理和反向代理的作用和目的不同正向代理主要是用来解决访问限制问题而反向代理则是提供负载均衡安全防护等作用二者均能提高访问速度正向代理一般是客户端架设的比如在自己的机器上安装一个代理软件而反向代理一般是服务器架设的比如在自己的机器集群中部署一个反向代理服务器如何配置反向代理这里举个简单的例子使用反向代理根据访问的路径跳转到本机其他服务器的不同端口的服务中监听端口为其他服务器的地址负载均衡端口未完待续',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-03-02 20:42:51',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" ><meta name="generator" content="Hexo 7.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><div class="back-home-button"><i class="anzhiyufont anzhiyu-icon-grip-vertical"></i><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">站点</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="安知鱼的博客"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="安知鱼的博客"/><span class="back-menu-item-text">安知鱼的博客</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/posts/d50a.html" title="标签语法"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="标签语法"/><span class="back-menu-item-text">标签语法</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://docs.anheyu.com/advanced/#%E6%90%9C%E7%B4%A2%E7%B3%BB%E7%BB%9F" title="官方文档"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="官方文档"/><span class="back-menu-item-text">官方文档</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://webstack.lumengde.com/" title="晚风导航"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="晚风导航"/><span class="back-menu-item-text">晚风导航</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div></div><a id="site-name" href="/" accesskey="h"><div class="title">学习笔记本</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a><div id="he-plugin-simple"></div><script>var WIDGET = {
+  "CONFIG": {
+    "modules": "0124",
+    "background": "2",
+    "tmpColor": "FFFFFF",
+    "tmpSize": "16",
+    "cityColor": "FFFFFF",
+    "citySize": "16",
+    "aqiColor": "E8D87B",
+    "aqiSize": "16",
+    "weatherIconSize": "24",
+    "alertIconSize": "18",
+    "padding": "10px 10px 10px 10px",
+    "shadow": "0",
+    "language": "auto",
+    "borderRadius": "20",
+    "fixed": "true",
+    "vertical": "top",
+    "horizontal": "left",
+    "left": "20",
+    "top": "7.1",
+    "key": "df245676fb434a0691ead1c63341cd94"
+  }
+}
+</script><link rel="stylesheet" href="https://widget.qweather.net/simple/static/css/he-simple.css?v=1.4.0"/><script src="https://widget.qweather.net/simple/static/js/he-simple.js?v=1.4.0"></script></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 归档</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/fcircle/"><i class="anzhiyufont anzhiyu-icon-artstation faa-tada" style="font-size: 0.9em;"></i><span> 朋友圈</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/air-conditioner/"><i class="anzhiyufont anzhiyu-icon-fan faa-tada" style="font-size: 0.9em;"></i><span> 小空调</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" target="_blank" rel="noopener" href="https://umami.lumengde.com/share/ZSWmgM662ZphmxH2/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E6%9C%AC"><span> 访客数据</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div></div><div id="nav-right"><div class="nav-button only-home" id="travellings_button" title="随机前往一个开往项目网站"><a class="site-page" onclick="anzhiyu.totraveling()" title="随机前往一个开往项目网站" href="javascript:void(0);" rel="external nofollow" data-pjax-state="external"><i class="anzhiyufont anzhiyu-icon-train"></i></a></div><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" alt="微信" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" alt="支付宝" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/Docker/" style="font-size: 1.05rem;">Docker<sup>1</sup></a><a href="/tags/Hexo/" style="font-size: 1.05rem;">Hexo<sup>6</sup></a><a href="/tags/VPS/" style="font-size: 1.05rem;">VPS<sup>5</sup></a><a href="/tags/butterfly/" style="font-size: 1.05rem;">butterfly<sup>3</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 1.05rem;">科学上网<sup>3</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/03/"><span class="card-archive-list-date">三月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/02/"><span class="card-archive-list-date">二月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/01/"><span class="card-archive-list-date">一月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">9</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="article-meta tags"></span></div></div><h1 class="post-title" itemprop="name headline">一文理清Nginx-端口-反向代理等概念</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" itemprop="dateCreated datePublished" datetime="2024-02-29T11:38:38.000Z" title="发表于 2024-02-29 19:38:38">2024-02-29</time><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" itemprop="dateCreated datePublished" datetime="2024-03-02T12:42:51.991Z" title="更新于 2024-03-02 20:42:51">2024-03-02</time></span></div><div class="meta-secondline"><span class="post-meta-separator"></span><span class="post-meta-wordcount"><i class="anzhiyufont anzhiyu-icon-file-word post-meta-icon" title="文章字数"></i><span class="post-meta-label" title="文章字数">字数总计:</span><span class="word-count" title="文章字数">4k</span><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-clock post-meta-icon" title="阅读时长"></i><span class="post-meta-label" title="阅读时长">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">       </span><span class="post-meta-position" title="作者IP属地为福州"><i class="anzhiyufont anzhiyu-icon-location-dot"></i>福州</span><span class="post-meta-separator"></span><span class="post-meta-commentcount"><i class="anzhiyufont anzhiyu-icon-comments post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/posts/478d.html#post-comment"><span class="waline-comment-count" data-path="/posts/478d.html"><i class="anzhiyufont anzhiyu-icon-spinner anzhiyu-spin"></i></span></a></span></div></div></div><section class="main-hero-waves-area waves-area"><svg class="waves-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"></path></defs><g class="parallax"><use href="#gentle-wave" x="48" y="0"></use><use href="#gentle-wave" x="48" y="3"></use><use href="#gentle-wave" x="48" y="5"></use><use href="#gentle-wave" x="48" y="7"></use></g></svg></section><div id="post-top-cover"><img class="nolazyload" id="post-top-bg" src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403021959182.webp"></div></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container" itemscope itemtype="https://blog.lumengde.com/posts/478d.html"><header><h1 id="CrawlerTitle" itemprop="name headline">一文理清Nginx-端口-反向代理等概念</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">卢孟德</span><time itemprop="dateCreated datePublished" datetime="2024-02-29T11:38:38.000Z" title="发表于 2024-02-29 19:38:38">2024-02-29</time><time itemprop="dateCreated datePublished" datetime="2024-03-02T12:42:51.991Z" title="更新于 2024-03-02 20:42:51">2024-03-02</time></header><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文涉及的名词：计算机网络、端口、OSI模型、HTTP、TCP、Nginx、反向代理、负载均衡</p>
+<p>今天在学习Nginx的时候，理不清<code>端口</code>是什么，有什么用。所以就和ChatGPT交流，并浏览了一些文章，整理出了一个较为完整的知识块，本片文章就来记录一下学习成果。</p>
+<h1 id="云服务器-VPS区别"><a href="#云服务器-VPS区别" class="headerlink" title="云服务器&amp;VPS区别"></a>云服务器&amp;VPS区别</h1><p>首先一台云服务器一般为一个独立的虚拟计算机实例，它还可以创建出多个虚拟机实例，即VPS（虚拟专用服务器）。每个VPS都有自己独立的操作系统、计算资源和网络配置，它们之间是相互隔离的。因此，每个VPS都可以在云服务器上独立地使用端口来提供服务，<strong>这些端口是相互隔离的，不会相互冲突</strong>。而Nginx只是个运行在VPS上的web服务器软件</p>
+<h1 id="端口的概念"><a href="#端口的概念" class="headerlink" title="端口的概念"></a>端口的概念</h1><p>参考文章：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/225777212">深入理解什么是端口(port) - 知乎 (zhihu.com)</a></p>
+<p>当我们在浏览器输入域名时，其实是要通过查找DNS获取目标服务器的IP，然后根据<code>IP:端口</code>来访问服务器。</p>
+<p> (IP：一个IP地址在全球范围内唯一标识一个设备，从而使设备能够相互识别和连接。)</p>
+<p>一般来讲，浏览器会使用HTTP或HTTPS协议，至于是哪个就看域名前是用<code>http://</code> 还是 <code>https://</code>。而这两个协议分别指定的是80和443端口。</p>
+<blockquote>
+<p><strong>为什么会有端口这个概念呢？首先需要了解的概念就是进程间通讯 IPC(Inter-Process Communication)。</strong></p>
+</blockquote>
+<p>浏览器发出请求，服务器响应请求，这其实是两个进程之间的通讯。而一台服务器上运行着非常多的进程和服务，例如web服务、ftp服务、mysql服务、Nginx进程等等。</p>
+<p>所以浏览器的进程想要与服务器进行通讯，仅仅知道服务器IP是不够的，还需要给出进程ID，这样服务器才知道由哪个进程去响应请求。</p>
+<blockquote>
+<p><strong>但是为什么引入端口的概念，而不是使用进程ID呢？</strong></p>
+</blockquote>
+<p>简单来看有这几个原因：客户端无法知道服务端对应进程的ID、服务端对应进程重启后ID会变、每个网站的web进程ID可能不同。这就导致客户端强依赖于服务端——要与服务端通讯, 就要知道服务端对应进程的 ID。</p>
+<p>为了解决这些问题，就引入了<strong>端口</strong>。客户端总是把请求发送到 80(或443) 端口，并反过来要求服务端去监听端口的通讯并处理请求。由此形成了反向依赖。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://pic2.zhimg.com/80/v2-a447744001f1b11464ccf941ae542a49_720w.webp"></p>
+<p>如果一个进程想要提供 web 服务, 它启动之后就要去绑定(binding) web 相关的端口。如果该端口被其他进程占用了，就会绑定失败。如果一个web进程没有关闭又试图启动另一个，则这两个进程都用了相同的端口，就会产生冲突。</p>
+<p>绑定端口后就会持续监听，当有请求到来时就去响应。</p>
+<p>端口的存在解耦了客户端与服务端之间的强依赖，整个体系变得很灵活。</p>
+<blockquote>
+<p><strong>以现实为例的话，可以把服务端当作市政大厅，那么端口就是一个个的服务窗口。</strong></p>
+</blockquote>
+<p><strong>从客户端的角度：</strong></p>
+<ul>
+<li>80 443窗口就是专门处理HTTP&#x2F;HTTPS请求相关的业务。类似的，常见情况下22窗口用于处理SSH传输业务，21窗口处理FTP文件传输业务，3306用来处理MySQL的连接和数据交互业务。</li>
+</ul>
+<p><strong>从服务端角度：</strong></p>
+<ul>
+<li>窗口默认是空的，如果想要提供哪些服务，那就需要运行相应的进程来占用窗口，处理业务。例如，Nginx软件监听服务器的80 443端口以提供web服务，MySQL软件监听3306端口来提供跟MySQL数据库有关的服务。在这里，Nginx和MySQL可以理解为窗口的工作人员。</li>
+</ul>
+<h1 id="Nginx介绍"><a href="#Nginx介绍" class="headerlink" title="Nginx介绍"></a>Nginx介绍</h1><p>Nginx是一款流行的web服务器软件。<strong>Nginx 既是软件，也是进程，同时也可以被称为服务器。</strong></p>
+<ul>
+<li><p>软件：作为软件，Nginx 提供了一系列的功能和特性，包括但不限于 HTTP 服务器、反向代理、负载均衡、缓存加速、SSL&#x2F;TLS 加密、虚拟主机、HTTP&#x2F;2 支持等。Nginx 的软件版本通常包含了可执行文件和配置文件等组成部分。</p>
+</li>
+<li><p>进程：当Nginx被启动时，操作系统会创建一个 Nginx 进程（通常是 master 进程）），该进程会加载 Nginx 的配置文件，并启动多个工作进程（通常是 worker 进程）来处理客户端的请求。每个 Nginx 进程都是操作系统中正在运行的程序的实例，拥有自己的代码、数据、堆栈等信息。</p>
+</li>
+<li><p>服务器：Nginx 也可以被称为服务器，这是因为它提供了 HTTP 服务器的功能，能够接收客户端的 HTTP 请求，并返回相应的 HTTP 响应。即可以处理客户端和服务器之间的通信</p>
+</li>
+</ul>
+<p>如果把Linux当作市政大厅的话，端口可以理解为每个服务窗口。窗口里面的工作人员就是提供相应服务的应用程序。</p>
+<p>由于Linux本身不提供web服务，所以需要安装web服务器软件如Nginx、Apache等，才可以作为服务器提供web服务。</p>
+<p>当安装好Nginx并启动后，Nginx会监听80 443端口，可以理解为Nginx成为了80 443窗口的工作人员。一个端口只有一个服务能监听，否则会冲突。Nginx可以创建多个worker进程，所以Nginx在80&#x2F;443端口可以监听很多个网站的请求。</p>
+<p>当有客户端向本机发送HTTP&#x2F;HTTPS请求时，会通过80 443端口，就会被Nginx监听到，并根据其配置文件执行相应操作。</p>
+<h1 id="浏览器访问域名过程"><a href="#浏览器访问域名过程" class="headerlink" title="浏览器访问域名过程"></a>浏览器访问域名过程</h1><blockquote>
+<p><strong>当你在浏览器输入网址时，就能得到网页文件并加载出页面，那在这过程中发生了什么呢？</strong></p>
+</blockquote>
+<p><strong>域名解析（DNS解析）：</strong></p>
+<ul>
+<li>点击域名后，浏览器首先会检查自己的DNS缓存，看是否已经解析过这个域名对应的IP地址。如果有，就直接使用缓存的IP地址。</li>
+<li>如果没有缓存或缓存过期，浏览器会向本地系统的DNS解析器发送一个DNS查询请求，以获取该域名对应的IP地址。</li>
+<li>本地系统的DNS解析器会查询本地缓存、hosts文件，如果没有找到，就会向互联网上的DNS服务器发送DNS查询请求。</li>
+</ul>
+<p><strong>DNS解析过程：</strong></p>
+<ul>
+<li>DNS服务器会按照递归查询或迭代查询的方式，依次向上级DNS服务器查询，从根域名服务器-&gt;顶级域名服务器-&gt;权威DNS服务器。</li>
+<li>权威DNS服务器会返回该域名对应的IP地址给本地DNS解析器，然后本地DNS解析器将IP地址返回给浏览器</li>
+</ul>
+<p><strong>建立TCP连接：</strong></p>
+<ul>
+<li>一旦浏览器获得了目标服务器的 IP 地址，就会使用解析得到的IP地址和HTTP默认端口（80）或者HTTPS默认端口（443），向服务器发起一个TCP连接请求（通过三次握手），请求建立一个与目标服务器的连接。【如果是HTTPS请求，浏览器还需要进行SSL&#x2F;TLS握手过程来建立安全连接。】</li>
+</ul>
+<p><strong>发送 HTTP 请求：</strong></p>
+<ul>
+<li>一旦 TCP 连接建立成功，浏览器就会构造HTTP请求报文，其中包含请求的方法（GET、POST等）、目标URL、请求头部等信息。</li>
+<li>通过该TCP连接，浏览器将构造好的一个HTTP请求报文发送给目标服务器。这个 HTTP 请求包含了你想要获取的资源的信息，比如网页文件、图片、视频等。</li>
+</ul>
+<p><strong>服务器响应：</strong></p>
+<ul>
+<li>目标服务器收到了浏览器发送的 HTTP 请求后，会根据请求的内容进行处理，并生成一个 HTTP 响应。这个响应包含了请求的资源以及一些其他的信息，比如状态码、头部信息等。</li>
+</ul>
+<p><strong>接收响应：</strong></p>
+<ul>
+<li>一旦服务器生成了 HTTP 响应，它会通过 TCP 连接发送给浏览器。浏览器接收到了 HTTP 响应后，会解析响应内容，并根据内容显示网页或执行其他操作。</li>
+<li>例如浏览器获取了 index.html 页面，就会解析该页面的 HTML 内容，如果发现页面中引用了其他资源（比如 JavaScript 文件、CSS 文件、图片等），则会根据这些链接向服务器发起额外的 HTTP 请求来获取这些资源。</li>
+<li>这些额外的 HTTP 请求是在同一个 TCP 连接上进行的，因为 TCP 连接是持久的，在该连接上可以发送多个 HTTP 请求和接收多个 HTTP 响应。</li>
+<li>所以浏览器多次向服务器发送HTTP请求来获取文件。服务器则多次响应。直到最后完全加载完这个文件并进行页面渲染，最终呈现给用户。</li>
+</ul>
+<p><strong>关闭连接：</strong></p>
+<ul>
+<li>当一个网页中的所有资源都加载完毕后，浏览器会保持 TCP 连接开启一段时间，以便处理可能的后续请求，这个时间被称为持久连接（Keep-Alive）。</li>
+<li>如果在这段时间内，用户点击了页面上的按钮或者进行了其他交互操作，浏览器会根据操作构造并发起相应的 HTTP 请求。如果这些请求涉及到新的资源（比如新的页面、图片、脚本等），浏览器会在同一个 TCP 连接上发送这些请求，并继续保持连接。</li>
+<li>只有当一段时间内没有新的 HTTP 请求发送到服务器，或者服务器主动关闭连接，或者达到了连接持续时间的最大限制时，浏览器才会关闭 TCP 连接。</li>
+<li>持久连接会持续一段时间，目的是为了减少后续请求的延迟，提高页面加载速度。但不会持续太久，浏览器会在一定时间后自动关闭未使用的持久连接并释放资源，目的是节约服务器资源。</li>
+</ul>
+<h1 id="VPS处理浏览器请求过程"><a href="#VPS处理浏览器请求过程" class="headerlink" title="VPS处理浏览器请求过程"></a>VPS处理浏览器请求过程</h1><blockquote>
+<p><strong>从VPS&#x2F;服务器角度来看，发生了什么呢？</strong></p>
+</blockquote>
+<p>这里以Django网站项目为例。先来讲讲VPS上的Django项目关联哪些软件：</p>
+<p>首先Django项目会放在&#x2F;var&#x2F;www&#x2F;html站点文件目录，web服务器为Nginx接受HTTP&#x2F;HTTPS，然后反代到WSGI 服务器(作为后端服务器)，在WSGI 服务器( Gunicorn 或 uWSGI)中启动了Django应用程序，配置settings.py连接到了MySQL数据库。</p>
+<p>当Nginx监听80 443端口，接收到HTTP&#x2F;HTTPS请求后：</p>
+<p><strong>查找匹配的服务器块：</strong> </p>
+<ul>
+<li>Nginx 根据请求的域名和请求的 URI 在配置文件中查找匹配的服务器块（server block）。</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    server_name blog.lumengde.com;</span><br><span class="line"></span><br><span class="line">    ssl_certificate /path/to/your/certificate.pem;</span><br><span class="line">    ssl_certificate_key /path/to/your/private-key.pem;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://127.0.0.1:8000;</span><br><span class="line">        proxy_set_header Host $host;</span><br><span class="line">        proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto $scheme;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>例如：请求域名为<a href="https://blog.lumengde.com/depart/list">https://blog.lumengde.com/depart/list</a> ，则在Nginx监听443端口server_name为blog.lumengde.com的server块中找到匹配<code>/depart/list</code>的location服务块。</p>
+<p><strong>处理请求_转发请求给后端应用程序：</strong> </p>
+<ul>
+<li>在示例配置中，包含了反向代理指令 <code>proxy_pass</code>，将 HTTPS 请求转发到了 <code>http://127.0.0.1:8000</code>，这意味着后端 Django 应用程序在本地的 8000 端口上监听请求。Nginx 根据该指令将请求转发给后端应用程序（如 Gunicorn 或其他 WSGI 服务器）处理。</li>
+</ul>
+<p><strong>后端应用程序处理请求：</strong> </p>
+<ul>
+<li>后端应用程序（Django 项目）接收到请求后，根据请求的 URI 和其他信息执行相应的处理逻辑，可能涉及到路由、视图函数等。</li>
+<li>Django 项目通常使用 WSGI 服务器（如 Gunicorn）来监听本地的端口，并处理传入的请求。后端应用程序会根据 URL 路由和视图函数等逻辑来处理请求，执行相应的业务逻辑、查询数据库等操作。</li>
+<li>这里传入的URL请求<code>/depart/list</code>会在 <code>urls.py</code> 的path中匹配到对应的<code>view</code>视图函数，在<code>view.py</code>中视图函数会执行业务逻辑处理请求、访问数据库等等。</li>
+</ul>
+<p><strong>生成响应：</strong> </p>
+<ul>
+<li>后端应用程序处理完请求后，生成 HTTPS 响应，包括所需的 HTML 内容、状态码等。</li>
+</ul>
+<p><strong>返回响应给 Nginx：</strong> </p>
+<ul>
+<li>后端应用程序将生成的 HTTP 响应返回给 Nginx，通常是通过本地的某个端口，例如 8000 端口。</li>
+</ul>
+<p><strong>Nginx 返回响应给客户端：</strong> </p>
+<ul>
+<li>Nginx 接收到来自后端应用程序的 HTTPS 响应后，将其返回给客户端。浏览器接收到响应后，根据响应的内容进行页面渲染或其他相应操作。至此，完成了整个请求-响应周期。</li>
+</ul>
+<h1 id="反向代理"><a href="#反向代理" class="headerlink" title="反向代理"></a>反向代理</h1><p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1418457">终于有人把正向代理和反向代理解释的明明白白了！-腾讯云开发者社区-腾讯云 (tencent.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/451825018">Nginx配置反向代理，一篇搞定！ - 知乎 (zhihu.com)</a></li>
+</ul>
+<blockquote>
+<p><strong>先来说下什么是正向代理：</strong></p>
+</blockquote>
+<p>简单举个例子，你想在国内访问Youtube，但是访问被长城防御挡下了。如果你以既能连接国内网络也能连接国外网络的服务器作为”中转”，那么就能顺利访问国外的网站。所谓的搭梯子也是这个原理。这中间用来做”跳板”的服务器，就叫做<strong>正向代理</strong>。</p>
+<blockquote>
+<p><strong>而Nginx除了能提供HTTP&#x2F;HTTPS服务之外，还能进行反向代理</strong>。</p>
+</blockquote>
+<ul>
+<li><p>反向代理是Nginx的一个重要功能，它允许Nginx接收客户端的请求，并将这些请求转发到后端的真实服务器(不一定是本机)，然后将后端服务器的响应返回给客户端。</p>
+</li>
+<li><p>反向代理的好处是隐藏了后端服务器的真实信息，提供了负载均衡、缓存、安全过滤等功能，同时也增强了网站的可靠性和安全性。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>正向代理和反向代理的区别：</strong></p>
+</blockquote>
+<ul>
+<li><p><strong>正向代理其实是客户端的代理</strong>，帮助客户端访问其无法访问的服务器资源。<strong>反向代理则是服务器的代理</strong>，帮助服务器做负载均衡，安全防护等。</p>
+</li>
+<li><p><strong>正向代理中，服务器不知道真正的客户端到底是谁</strong>，以为访问自己的就是真实的客户端。而在<strong>反向代理中，客户端不知道真正的服务器是谁</strong>，以为自己访问的就是真实的服务器。</p>
+</li>
+<li><p>正向代理和反向代理的作用和目的不同。<strong>正向代理主要是用来解决访问限制问题。而反向代理则是提供负载均衡、安全防护等作用。二者均能提高访问速度。</strong></p>
+</li>
+<li><p><strong>正向代理一般是客户端架设的</strong>，比如在自己的机器上安装一个代理软件。而<strong>反向代理一般是服务器架设的</strong>，比如在自己的机器集群中部署一个反向代理服务器。</p>
+</li>
+</ul>
+<p>如何配置反向代理？这里举个简单的例子：</p>
+<p>使用 Nginx 反向代理，根据访问的路径跳转到本机&#x2F;其他服务器 的不同端口的服务中，Nginx 监听端口为 9001。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">  listen       9001;</span><br><span class="line">  server_name  192.168.17.129;</span><br><span class="line"></span><br><span class="line">  location ~ /edu/ &#123;</span><br><span class="line">    proxy_pass  http://127.0.0.1:8080</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  location ~ /vod/ &#123;</span><br><span class="line">    proxy_pass  http://其他服务器的IP地址:8081</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>负载均衡</p>
+</blockquote>
+<h1 id="端口-TCP-UDP"><a href="#端口-TCP-UDP" class="headerlink" title="端口&amp;TCP&#x2F;UDP"></a>端口&amp;TCP&#x2F;UDP</h1><p>未完待续…</p>
+</article><div class="post-copyright"><div class="copyright-cc-box"><i class="anzhiyufont anzhiyu-icon-copyright"></i></div><div class="post-copyright__author_box"><a class="post-copyright__author_img" href="/" title="头像"><img class="post-copyright__author_img_back" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" title="头像" alt="头像"><img class="post-copyright__author_img_front" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" title="头像" alt="头像"></a><div class="post-copyright__author_name">卢孟德</div><div class="post-copyright__author_desc">呼吸不停，学习不止</div></div><div class="post-copyright__post__info"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="https://blog.lumengde.com/posts/478d.html">原创</a><a class="post-copyright-title"><span onclick="rm.copyPageUrl('https://blog.lumengde.com/posts/478d.html')">一文理清Nginx-端口-反向代理等概念</span></a></div><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="rewardLeftButton"><div class="post-reward" onclick="anzhiyu.addRewardMask()"><div class="reward-button button--animated" title="赞赏作者"><i class="anzhiyufont anzhiyu-icon-hand-heart-fill"></i>打赏作者</div><div class="reward-main"><div class="reward-all"><span class="reward-title">感谢你赐予我前进的力量</span><ul class="reward-group"><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul><a class="reward-main-btn" href="/about/#about-reward" target="_blank"><div class="reward-text">赞赏者名单</div><div class="reward-dec">因为你们的支持让我意识到写文章的价值🙏</div></a></div></div></div><div id="quit-box" onclick="anzhiyu.removeRewardMask()" style="display: none"></div></div><div class="shareRight"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="https://blog.lumengde.com/posts/478d.html"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=一文理清Nginx-端口-反向代理等概念&amp;url=https://blog.lumengde.com/posts/478d.html&amp;pic=https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403021959182.webp" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><script>function copyCurrentPageUrl() {
+  var currentPageUrl = window.location.href;
+  var input = document.createElement("input");
+  input.setAttribute("value", currentPageUrl);
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}</script><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="copyCurrentPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div></div></div><div class="post-copyright__notice"><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://blog.lumengde.com" target="_blank">学习笔记本</a>！</span></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__tag-list"></div></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022111681.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"/><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer="defer"></script></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/ffab.html"><img class="prev-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022124084.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</div></div></a></div><div class="next-post pull-right"><a href="/posts/8830.html"><img class="next-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022114659.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">通过Docker搭建自己的网站统计工具Umami</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="anzhiyufont anzhiyu-icon-comments"></i><span> 评论</span></div><div class="comment-randomInfo"><a onclick="anzhiyu.addRandomCommentInfo()" href="javascript:void(0)">匿名评论</a><a href="/privacy" style="margin-left: 4px">隐私政策</a></div></div><div class="comment-wrap"><div><div id="waline-wrap"></div></div></div></div><div class="comment-barrage"></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info__sayhi" id="author-info__sayhi" onclick="anzhiyu.changeSayHelloText()"></div><div class="author-info-avatar"><img class="avatar-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202402080900014.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-status"><img class="g-status" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://bu.dusays.com/2021/01/15/cba0a1130e789.png" alt="status"/></div></div><div class="author-info__description"><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">这有关于<b style="color:#fff">编程、建站、VPS</b>相关的文章和笔记，还有<b style="color:#fff">其他方面</b>的一些文章。</div><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">希望你可以在这里找到对你有用的<b style="color:#fff">知识</b>和<b style="color:#fff">教程</b>。</div></div><div class="author-info__bottom-group"><a class="author-info__bottom-group-left" href="/"><h1 class="author-info__name">卢孟德</h1><div class="author-info__desc">呼吸不停，学习不止</div></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/lumengde123?tab=stars" target="_blank" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a><a class="social-icon faa-parent animated-hover" href="https://space.bilibili.com/37080841/favlist" target="_blank" title="BiliBili"><i class="anzhiyufont anzhiyu-icon-bilibili"></i></a></div></div></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bullhorn anzhiyu-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来看我的博客鸭~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8-VPS%E5%8C%BA%E5%88%AB"><span class="toc-number">2.</span> <span class="toc-text">云服务器&amp;VPS区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">端口的概念</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Nginx%E4%BB%8B%E7%BB%8D"><span class="toc-number">4.</span> <span class="toc-text">Nginx介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E8%AE%BF%E9%97%AE%E5%9F%9F%E5%90%8D%E8%BF%87%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">浏览器访问域名过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#VPS%E5%A4%84%E7%90%86%E6%B5%8F%E8%A7%88%E5%99%A8%E8%AF%B7%E6%B1%82%E8%BF%87%E7%A8%8B"><span class="toc-number">6.</span> <span class="toc-text">VPS处理浏览器请求过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">反向代理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AB%AF%E5%8F%A3-TCP-UDP"><span class="toc-number">8.</span> <span class="toc-text">端口&amp;TCP&#x2F;UDP</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/d226.html" title="VPS-性能测试&amp;基本配置&amp;常用软件安装"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022111681.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="VPS-性能测试&amp;基本配置&amp;常用软件安装"/></a><div class="content"><a class="title" href="/posts/d226.html" title="VPS-性能测试&amp;基本配置&amp;常用软件安装">VPS-性能测试&amp;基本配置&amp;常用软件安装</a><time datetime="2024-03-02T09:41:44.000Z" title="发表于 2024-03-02 17:41:44">2024-03-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/8830.html" title="通过Docker搭建自己的网站统计工具Umami"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022114659.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="通过Docker搭建自己的网站统计工具Umami"/></a><div class="content"><a class="title" href="/posts/8830.html" title="通过Docker搭建自己的网站统计工具Umami">通过Docker搭建自己的网站统计工具Umami</a><time datetime="2024-03-02T09:13:34.000Z" title="发表于 2024-03-02 17:13:34">2024-03-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/478d.html" title="一文理清Nginx-端口-反向代理等概念"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403021959182.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="一文理清Nginx-端口-反向代理等概念"/></a><div class="content"><a class="title" href="/posts/478d.html" title="一文理清Nginx-端口-反向代理等概念">一文理清Nginx-端口-反向代理等概念</a><time datetime="2024-02-29T11:38:38.000Z" title="发表于 2024-02-29 19:38:38">2024-02-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/ffab.html" title="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022124084.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘"/></a><div class="content"><a class="title" href="/posts/ffab.html" title="Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘">Aria2 + Aria2NG + rclone 实现离线下载并自动上传 Onedirve 网盘</a><time datetime="2024-02-06T07:28:59.000Z" title="发表于 2024-02-06 15:28:59">2024-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/60a8.html" title="butterfly-标签外挂"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/img/202403022052073.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="butterfly-标签外挂"/></a><div class="content"><a class="title" href="/posts/60a8.html" title="butterfly-标签外挂">butterfly-标签外挂</a><time datetime="2024-01-10T11:05:42.000Z" title="发表于 2024-01-10 19:05:42">2024-01-10</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2024 By <a class="footer-bar-link" href="/" title="卢孟德" target="_blank">卢孟德</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">2</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">站点</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="安知鱼的博客"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="安知鱼的博客"/><span class="back-menu-item-text">安知鱼的博客</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/posts/d50a.html" title="标签语法"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="标签语法"/><span class="back-menu-item-text">标签语法</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://docs.anheyu.com/advanced/#%E6%90%9C%E7%B4%A2%E7%B3%BB%E7%BB%9F" title="官方文档"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="官方文档"/><span class="back-menu-item-text">官方文档</span></a><a class="back-menu-item" target="_blank" rel="noopener" href="https://webstack.lumengde.com/" title="晚风导航"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="晚风导航"/><span class="back-menu-item-text">晚风导航</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 归档</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/fcircle/"><i class="anzhiyufont anzhiyu-icon-artstation faa-tada" style="font-size: 0.9em;"></i><span> 朋友圈</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/bangumis/"><i class="anzhiyufont anzhiyu-icon-bilibili faa-tada" style="font-size: 0.9em;"></i><span> 追番页</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/air-conditioner/"><i class="anzhiyufont anzhiyu-icon-fan faa-tada" style="font-size: 0.9em;"></i><span> 小空调</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" target="_blank" rel="noopener" href="https://umami.lumengde.com/share/ZSWmgM662ZphmxH2/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E6%9C%AC"><span> 访客数据</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li><li><a class="site-page child faa-parent animated-hover" href="javascript:toRandomPost()"><i class="anzhiyufont anzhiyu-icon-shoe-prints1 faa-tada" style="font-size: 0.9em;"></i><span> 随便逛逛</span></a></li></ul></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/Docker/" style="font-size: 0.88rem;">Docker<sup>1</sup></a><a href="/tags/Hexo/" style="font-size: 0.88rem;">Hexo<sup>6</sup></a><a href="/tags/VPS/" style="font-size: 0.88rem;">VPS<sup>5</sup></a><a href="/tags/butterfly/" style="font-size: 0.88rem;">butterfly<sup>3</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 0.88rem;">科学上网<sup>3</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="anzhiyufont anzhiyu-icon-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="8152976493" server="netease" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume="0.7"></meting-js></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/8802438608&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.5/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.cbd.int/pangu@4.0.7/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("04/01/2021 00:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2024 By 安知鱼 V1.6.12",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 卢孟德 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><script>(() => {
+  const initWaline = () => {
+    const waline = Waline.init(Object.assign({
+      el: '#waline-wrap',
+      serverURL: 'blog-waline-sepia-two.vercel.app',
+      pageview: false,
+      dark: 'html[data-theme="dark"]',
+      path: window.location.pathname,
+      comment: true,
+    }, {"requiredMeta":["nick","mail"],"locale":{"placeholder":"昵称和邮箱为必填项，为了您能及时收到相关回复的邮件通知，请确保邮箱的正确性！"}}))
+  }
+
+  const loadWaline = async () => {
+    if (typeof Waline === 'object') initWaline()
+    else {
+      await getCSS('https://cdn.cbd.int/@waline/client@2.15.5/dist/waline.css')
+      await getScript('https://cdn.cbd.int/@waline/client@2.15.5/dist/waline.js')
+      initWaline()
+    }
+  }
+
+  if ('Waline' === 'Waline' || !false) {
+    if (false) anzhiyu.loadComment(document.getElementById('waline-wrap'),loadWaline)
+    else setTimeout(loadWaline, 0)
+  } else {
+    window.loadOtherComment = loadWaline
+  }
+})()</script><input type="hidden" name="page-type" id="page-type" value="post"></div><script>window.addEventListener('load', () => {
+  const changeContent = content => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'data-lazy-src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'></a>`
+        }
+
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}' title='${array[i].content}'>${array[i].content}</a>
+        <div class='name'><span>${array[i].nick} / </span><time datetime="${array[i].date}">${anzhiyu.diffDate(array[i].date, true)}</time></div>
+        </div></div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom && ($dom.innerHTML= result)
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const getComment = async () => {
+    try {
+      const res = await fetch('blog-waline-sepia-two.vercel.app/api/comment?type=recent&count=6', { method: 'GET' })
+      const result = await res.json()
+      const walineArray = result.data.map(e => {
+        return {
+          'content': changeContent(e.comment),
+          'avatar': e.avatar,
+          'nick': e.nick,
+          'url': e.url + '#' + e.objectId,
+          'date': e.time || e.insertedAt
+        }
+      })
+      saveToLocal.set('waline-newest-comments', JSON.stringify(walineArray), 10/(60*24))
+      generateHtml(walineArray)
+    } catch (err) {
+      console.error(err)
+      const $dom = document.querySelector('#card-newest-comments .aside-list')
+      $dom.textContent= "无法获取评论，请确认相关配置是否正确"
+    }
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('waline-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><script>var visitorMail = "";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>
