@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content=""><title>Hexo图片管理 | 图床使用教程 | mengdelu</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=1.0.0"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/normalize/latest/normalize.min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/latest/pure-min.min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/latest/grids-responsive-min.min.css"><link rel="stylesheet" href="//lib.baomitu.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//lib.baomitu.com/jquery/latest/jquery.min.js"></script><link rel="icon" mask="" sizes="any" href="/favicon.ico"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"><link rel="alternate" type="application/atom+xml" href="/atom.xml"><script type="text/javascript" src="//lib.baomitu.com/clipboard.js/latest/clipboard.min.js"></script><script type="text/javascript" src="//lib.baomitu.com/toastr.js/latest/toastr.min.js"></script><link rel="stylesheet" href="//lib.baomitu.com/toastr.js/latest/toastr.min.css"><div class="darkmode-toggle">🌓</div><script>var prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
+var toggle = document.querySelector('.darkmode-toggle');
+var html = document.querySelector('html');
+
+html.dataset.dark = localStorage.dark || prefersDarkMode.matches;
+
+toggle.addEventListener('click', () => {
+localStorage.dark = !(html.dataset.dark == 'true');
+html.dataset.dark = localStorage.dark;
+});</script><meta name="generator" content="Hexo 7.2.0"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">Hexo图片管理 | 图床使用教程</h1><a id="logo" href="/.">mengdelu</a><p class="description">一个简单的笔记仓库</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/tags/"><i class="fa fa-tags"> 标签</i></a><a href="/timeline/"><i class="fa fa-circle"> 时间线</i></a><a href="/resource/"><i class="fa fa-cloud"> 资源</i></a><a href="/photos/"><i class="fa fa-photo"> 相册</i></a><a href="/about/"><i class="fa fa-user"> 个人介绍</i></a><a href="/comments/"><i class="fa fa-wechat"> 留言</i></a><a href="/atom.xml"><i class="fa fa-rss-square"> RSS</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">Hexo图片管理 | 图床使用教程</h1><div class="post-meta">2024-06-14<span> | </span><span class="category"><a href="/categories/%E4%BA%92%E8%81%94%E7%BD%91%E6%8A%80%E6%9C%AF/">互联网技术</a></span><span class="post-time"><span class="post-meta-item-text"> | </span><span class="post-meta-item-icon"><i class="fa fa-keyboard-o"></i><span class="post-count"> 1.3k</span><span class="post-meta-item-text"> 字</span></span></span><span class="post-time"> | <span class="post-meta-item-icon"><i class="fa fa-clock-o"></i><span class="post-count"> 4</span><span class="post-meta-item-text"> 分钟</span></span></span></div><div class="post-content"><h1 id="图片引用"><a href="#图片引用" class="headerlink" title="图片引用"></a>图片引用</h1><p>可以使用Github仓库存放图片，通过PicGo图床工具快捷上传到Github和获取图片在Github的链接。</p>
+<p>这里抛弃<strong>本地引用</strong>，因为有的主题插件可能有冲突，导致引用图片失败。</p>
+<p>在博客本地存放图片并引用，缺点：</p>
+<ul>
+<li>可能出现图片引用错误。</li>
+<li>博客文章一多，图片也多占用空间太大，重新生成和部署的时候耗时太久。</li>
+<li>Github仓库有容量限制，博客仓库同时存放图片不利于后期使用。</li>
+</ul>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src=<span class="string">&quot;https://www.xuarh.com/2020/06/16/Hexo/Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0VPS/principle.png&quot;</span> style=<span class="string">&quot;zoom:50%;&quot;</span> /&gt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="图片压缩"><a href="#图片压缩" class="headerlink" title="图片压缩"></a>图片压缩</h1><p>图片太大会影响网站加载速度，文章太长图片也多，会消耗读者大量流量。<br>所以需要对图片进行压缩处理。压缩完再存入，然后文章再引用链接。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docsmall.com/image-compress">docsmall - 在线图片压缩</a>：压缩程度分为5档</li>
+<li><a target="_blank" rel="noopener" href="https://tinify.cn/">TinyPNG - 智能压缩</a>：一般压缩60%~70%的大小</li>
+</ul>
+<h1 id="Github-Picgo-jsDelivr-CDN"><a href="#Github-Picgo-jsDelivr-CDN" class="headerlink" title="Github + Picgo + jsDelivr CDN"></a>Github + Picgo + jsDelivr CDN</h1><p>设置了图床，就不用在博客项目仓库里存图片，而是存在其他仓库，节省博客仓库空间。也不用处理图片，挣扎图片路径的错误，十分方便！</p>
+<p>当博客文章变多时，占用的空间非常大，生成速度也慢。所以我们可以新建个仓库专门用来存图片，以此减少博客占用空间。<br>可以使用图片压缩网站对图片先进行压缩再存入，以减少浏览文章的流量消耗。</p>
+<p>概念补充：</p>
+<ul>
+<li>GitHub 上，每个文件都有一个对应的 raw 链接，通过它就可以访问文件的原始内容。</li>
+<li>PicGo,一个用于快速上传图片并获取图片 URL 链接的工具。</li>
+<li>jsDelivr 是一个免费、开源的加速CDN公共服务，可加速访问托管的项目目录或图片资源。<br>当然也可以通过jsDelivr来加速访问github中某个仓库中的某张图片。</li>
+</ul>
+<p>执行流程：</p>
+<ul>
+<li>使用 PicGo 选择要上传的图片，并配置好上传目标，这里是 GitHub。</li>
+<li>PicGo 将图片上传到你指定的 GitHub 仓库，并通过 GitHub API 完成上传过程。</li>
+<li>上传成功后，PicGo 会返回一个链接，该链接是指向上传后的图片在 GitHub 仓库中的 raw 链接。</li>
+<li>通过jsDelivr CDN加速图片访问的使用非常简单，直接修改链接就可以：<br><code>https://cdn.jsdelivr.net/gh/用户名称/仓库名称@版本号或分支/[目录/]图片名</code>。</li>
+</ul>
+<p>参考教程：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/489236769">使用Github+picGo搭建图床，保姆级教程来了</a></li>
+<li><a target="_blank" rel="noopener" href="https://lanlan2017.github.io/blog/b19c6a80/">PicGo GitHub图床</a></li>
+</ul>
+<p><strong>使用教程</strong></p>
+<p><strong>1.Github新建仓库</strong><br>在Github头像左侧，点击<code>+</code>-&gt;<code>New Repository</code>，可为仓库取名：<code>cdn_img</code>，权限为<code>Public</code>，可勾选<code>add a README file</code>。</p>
+<p><strong>2.生成token</strong><br>点击<code>Github头像-&gt;Settings-&gt;Developer Settings-&gt;Personal access tokens-&gt;Tokens(classic)-&gt;Generate new access Token(classic)</code>，别选(Beta)，后面会报错的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/maupassant/hexo-photos-manage--01.png"></p>
+<p>Note: for saving cdn_img（写啥都行）；Select scopes：把repo全勾上。<br>点击<code>Generate token</code>，注意这里的token只会出现一次，最好复制后在微信发给自己并右键-&gt;收藏。</p>
+<blockquote>
+<p>3.下载PicGo并配置<br>在<a target="_blank" rel="noopener" href="https://github.com/Molunerfinn/PicGo/releases">【Github-PicGo-releases】</a>里下载<code>PicGo-Setup-版本.exe</code>.<br>这里我们下载<a target="_blank" rel="noopener" href="https://github.com/Molunerfinn/PicGo/releases/tag/v2.3.1">【2.3.1长期稳定版本】</a>,点此直接下载：<a target="_blank" rel="noopener" href="https://github.com/Molunerfinn/PicGo/releases/download/v2.3.1/PicGo-Setup-2.3.1.exe">PicGo-v2.3.1</a></p>
+</blockquote>
+<p>【来自知乎-程序猿手记】如果安装成功，PicGo不能正常使用，则可以右键exe文件-&gt;属性-&gt;勾选兼容模式和管理员权限。(有的电脑会出现这个问题)</p>
+<p>打开软件，<code>图床设置-&gt;Github</code>，填写配置信息，点击确定并<code>设为默认图床</code>。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/maupassant/hexo-photos-manage--02.png"></p>
+<p>仓库名：github用户名&#x2F;cdn_img<br>分支名：main；或者自己在Github新建个分支，我这里新建了blog_hexo分支<br>Token：刚才获取的Token<br>存储路径：不设置图片就默认存于该分支的根目录，也可以设个路径（自动生成文件夹）存放图片<br>自定义域名：</p>
+<ul>
+<li>默认github的raw链接是：<code>https://raw.githubusercontent.com/用户名/仓库名@分支名</code> （比较慢）</li>
+<li>通过jsDelivr CDN加速：<code>https://cdn.jsdelivr.net/gh/用户名/仓库名@分支名</code> （偶尔失效，可先换回raw的链接）</li>
+</ul>
+<p>打开<code>PicGo设置</code>，<strong>开启</strong><code>上传前重命名</code>,<code>时间戳重命名</code>,<code>开启上传提示</code>。</p>
+<p>此时我们上传图片，可以获得图片的链接地址，在浏览器中打开可以看见图片就行了。</p>
+<blockquote>
+<p>4.安装picgo-plugin-github-plus插件</p>
+</blockquote>
+<p>PicGo使用时，只能上传，删除图片时Github仓库无法同步删除，所以要在<code>PicGo-&gt;插件设置</code>安装这个插件。</p>
+<p>然后在<code>图床设置-&gt;githubPlus</code>里填配置信息，跟刚才的一样就行，然后确定，<code>设为默认图床</code>。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/lumengde123/cdn_img@blog_hexo/maupassant/hexo-photos-manage--03.png"></p>
+<p>测试：现在可以上传图片，在Github仓库中查看，然后在PicGo中删除，刷新Github页面查看图片是否也自动删除。</p>
+<p>以后文章要插入图片，先放到图片压缩网站里压缩一下大小，然后上传到PicGo，PicGo会自动返回链接到剪贴板，只需要在相应编辑器里粘贴即可。 </p>
+<p>建议只从PicGo操作Github里的图片。</p>
+</div><div class="post-copyright"><script type="text/javascript" src="/js/copyright.js?v=1.0.0" successtext="复制成功！"></script><link rel="stylesheet" type="text/css" href="/css/copyright.css?v=1.0.0"><p><span>本文标题：</span>Hexo图片管理 | 图床使用教程</p><p><span>文章作者：</span>德德</p><p><span>发布时间：</span>2024-06-14</p><p><span>最后更新：</span>2024-06-14</p><p><span>原始链接：</span><a href="/posts/d95.html">https://lumengde123.github.io/posts/d95.html</a><span class="copy-path"><i class="fa fa-clipboard" data-clipboard-text="https://lumengde123.github.io/posts/d95.html"></i></span></p><p><span>版权声明：</span>本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议。转载请注明出处！</p></div><br><div class="tags"><ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E7%9B%B8%E5%85%B3/" rel="tag">博客相关</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9B%BE%E5%BA%8A/" rel="tag">图床</a></li></ul></div><div class="post-nav"><a class="pre" href="/posts/87e0.html">搭建Hexo-Webstack个人导航并部署到Github和VPS</a><a class="next" href="/posts/6173.html">Docker Compose 安装及常用命令整理</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="search-form"><input id="local-search-input" placeholder="Search" type="text" name="q" results="0"/><div id="local-search-result"></div></div></div><div class="widget"><div class="author-info"><a class="info-avatar" href="/about/" title="关于"><img class="nofancybox" src="/img/avatar.jpg"/></a><p>无</p><a class="info-icon" href="https://twitter.com/username" title="Twitter" target="_blank" style="margin-inline:5px"> <i class="fa fa-twitter-square" style="margin-inline:5px"></i></a><a class="info-icon" href="mailto:admin@domain.com" title="Email" target="_blank" style="margin-inline:5px"> <i class="fa fa-envelope-square" style="margin-inline:5px"></i></a><a class="info-icon" href="https://github.com/lumengde123" title="Github" target="_blank" style="margin-inline:5px"> <i class="fa fa-github-square" style="margin-inline:5px"></i></a><a class="info-icon" href="/atom.xml" title="RSS" target="_blank" style="margin-inline:5px"> <i class="fa fa-rss-square" style="margin-inline:5px"></i></a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%92%E8%81%94%E7%BD%91%E6%8A%80%E6%9C%AF/">互联网技术</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9A%82%E6%9C%AA%E5%BD%92%E7%B1%BB/">暂未归类</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">软件使用教程</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%9A%8F%E7%AC%94%E6%9D%82%E8%AE%B0/">随笔杂记</a><span class="category-list-count">2</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/VPS%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA/" style="font-size: 15px;">VPS项目搭建</a> <a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 15px;">科学上网</a> <a href="/tags/Django/" style="font-size: 15px;">Django</a> <a href="/tags/Hexo/" style="font-size: 15px;">Hexo</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E7%9B%B8%E5%85%B3/" style="font-size: 15px;">博客相关</a> <a href="/tags/%E5%9B%BE%E5%BA%8A/" style="font-size: 15px;">图床</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/posts/d5ba.html">临时内容存放处</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/5e93.html">VPS基本使用和性能测试</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/1ea.html">使用Django快速搭建web网站 | 实现简单注册登录功能</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/fa4.html">免费获取CloudFlare的科学上网节点</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/c74a.html">通过GitHook部署Hexo博客到VPS上</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/e800.html">随笔-拥有一台云服务器能做什么</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/3bd1.html">随笔-英语博主合集</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/87e0.html">搭建Hexo-Webstack个人导航并部署到Github和VPS</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/d95.html">Hexo图片管理 | 图床使用教程</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/6173.html">Docker Compose 安装及常用命令整理</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2024 <a href="/." rel="nofollow">mengdelu.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=1.0.0" async></script><script type="text/javascript" src="//lib.baomitu.com/fancybox/latest/jquery.fancybox.min.js"></script><script type="text/javascript" src="/js/fancybox.js?v=1.0.0"></script><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/fancybox/latest/jquery.fancybox.min.css"><link rel="stylesheet" type="text/css" href="/css/search.css?v=1.0.0"><script type="text/javascript" src="/js/search.js?v=1.0.0"></script><script>var search_path = 'search.xml';
+if (search_path.length == 0) {
+  search_path = 'search.xml';
+}
+var path = '/' + search_path;
+searchFunc(path, 'local-search-input', 'local-search-result');
+</script><script type="text/javascript" src="/js/copycode.js?v=1.0.0" successtext="复制成功！"></script><link rel="stylesheet" type="text/css" href="/css/copycode.css?v=1.0.0"><link rel="stylesheet" type="text/css" href="/css/external.css?v=1.0.0"><script type="text/javascript" src="/js/codeblock-resizer.js?v=1.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=1.0.0"></script></div></body></html>

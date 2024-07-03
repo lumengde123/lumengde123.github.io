@@ -1,0 +1,242 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content=""><title>VPS项目搭建-集合(待修改) | mengdelu</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=1.0.0"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/normalize/latest/normalize.min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/latest/pure-min.min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/latest/grids-responsive-min.min.css"><link rel="stylesheet" href="//lib.baomitu.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//lib.baomitu.com/jquery/latest/jquery.min.js"></script><link rel="icon" mask="" sizes="any" href="/favicon.ico"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"><link rel="alternate" type="application/atom+xml" href="/atom.xml"><script type="text/javascript" src="//lib.baomitu.com/clipboard.js/latest/clipboard.min.js"></script><script type="text/javascript" src="//lib.baomitu.com/toastr.js/latest/toastr.min.js"></script><link rel="stylesheet" href="//lib.baomitu.com/toastr.js/latest/toastr.min.css"><div class="darkmode-toggle">🌓</div><script>var prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
+var toggle = document.querySelector('.darkmode-toggle');
+var html = document.querySelector('html');
+
+html.dataset.dark = localStorage.dark || prefersDarkMode.matches;
+
+toggle.addEventListener('click', () => {
+localStorage.dark = !(html.dataset.dark == 'true');
+html.dataset.dark = localStorage.dark;
+});</script><meta name="generator" content="Hexo 7.2.0"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">VPS项目搭建-集合(待修改)</h1><a id="logo" href="/.">mengdelu</a><p class="description">一个简单的笔记仓库</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/tags/"><i class="fa fa-tags"> 标签</i></a><a href="/timeline/"><i class="fa fa-circle"> 时间线</i></a><a href="/resource/"><i class="fa fa-cloud"> 资源</i></a><a href="/photos/"><i class="fa fa-photo"> 相册</i></a><a href="/about/"><i class="fa fa-user"> 个人介绍</i></a><a href="/comments/"><i class="fa fa-wechat"> 留言</i></a><a href="/atom.xml"><i class="fa fa-rss-square"> RSS</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">VPS项目搭建-集合(待修改)</h1><div class="post-meta">2024-06-14<span class="post-time"><span class="post-meta-item-text"> | </span><span class="post-meta-item-icon"><i class="fa fa-keyboard-o"></i><span class="post-count"> 3.6k</span><span class="post-meta-item-text"> 字</span></span></span><span class="post-time"> | <span class="post-meta-item-icon"><i class="fa fa-clock-o"></i><span class="post-count"> 15</span><span class="post-meta-item-text"> 分钟</span></span></span></div><div class="post-content"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这篇文章我会分享一些在VPS上搭建过的项目，都是一些比较有意思且实用的应用。</p>
+<p>基本都通过 <code>Docker Compose</code> 来<strong>部署</strong>，并通过反代神器 <code>Nginx Proxy Manager</code> 来<strong>配置反向代理</strong>。</p>
+<p>好处是不需要专业相关知识，跟着教程步骤即可搭建使用。</p>
+<p>注意：每次新建Docker容器后，记得开放对应的端口，设置好反向代理和添加域名解析。</p>
+<h1 id="Docker部署项目"><a href="#Docker部署项目" class="headerlink" title="Docker部署项目"></a>Docker部署项目</h1><h2 id="简单图床-EasyImage"><a href="#简单图床-EasyImage" class="headerlink" title="简单图床 EasyImage"></a>简单图床 EasyImage</h2><p>内存占用：40M起步</p>
+<p>安装教程：</p>
+<p>视频<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1vv4y1P7fd/?spm_id_from=333.337.search-card.all.click&vd_source=147cc6eb39eb565f36bd69ce0b3069bd">【好玩儿的Docker项目】10分钟搭建一个简单图床——Easyimage哔哩哔哩bilibili</a></p>
+<p>博客<a target="_blank" rel="noopener" href="https://iwanlab.com/docker-compose-install-easyimage/">【好玩儿的Docker项目】10分钟搭建一个简单图床——Easyimage | 爱玩实验室 (iwanlab.com)</a></p>
+<p>扩展插件：<a target="_blank" rel="noopener" href="https://icret.github.io/EasyImages2.0/#/./Edge%E6%8F%92%E4%BB%B6">Edge插件 (icret.github.io)</a></p>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://icret.github.io/EasyImages2.0/#/./%E4%B8%89%E6%96%B9%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97">三方安装指南 (icret.github.io)</a></p>
+<p>简易流程：</p>
+<blockquote>
+<p>创建安装目录</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /root/data/docker_data/easyimage</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /root/data/docker_data/easyimage</span><br><span class="line"></span><br><span class="line">vim docker-compose.yml</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>配置docker-compose.yml</p>
+</blockquote>
+<p>version: ‘3.3’<br>services:<br>  easyimage:<br>    image: ddsderek&#x2F;easyimage:latest<br>    container_name: easyimage<br>    ports:<br>      - ‘8180:80’<br>    environment:<br>      - TZ&#x3D;Asia&#x2F;Shanghai<br>      - PUID&#x3D;1000<br>      - PGID&#x3D;1000<br>    volumes:<br>      - ‘&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;easyimage&#x2F;config:&#x2F;app&#x2F;web&#x2F;config’<br>      - ‘&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;easyimage&#x2F;i:&#x2F;app&#x2F;web&#x2F;i’<br>    restart: unless-stopped</p>
+<p>查看端口占用，若被占用则换一个：</p>
+<p>lsof -i:8180</p>
+<p>启动docker compose服务</p>
+<p>docker compose up -d</p>
+<p>先别打开图床。</p>
+<p>NPM配置反代。切记Details不要勾选Block Common Exploits。</p>
+<p>在cf做好域名解析。</p>
+<p>修改config.php</p>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;easyimage&#x2F;config&#x2F;config.php<br>​<br>#把domain和imgurl分别改成自己的域名</p>
+<p>访问图床：IP:8180并安装。在设置中修改站点和图片URL。</p>
+<p>动态网站 WordPress</p>
+<p>内存占用：380M起步 无上限</p>
+<p>安装教程：</p>
+<p>视频【好玩儿的Docker项目】10分钟搭建美国白宫也用的博客框架——Wordpress！不过没Halo香！哔哩哔哩bilibili</p>
+<p>博客【好玩儿的Docker项目】10分钟搭建美国白宫也用的博客框架——Wordpress-我不是咕咕鸽 (laoda.de)</p>
+<p>扩展阅读：Docker版本安装WordPress常见问题梳理（附JustNews主题专属美化） | 爱玩实验室 (iwanlab.com)</p>
+<p>推荐安装：插件——WP Markdown、SSL不安全内容修复器。主题——Kratos、argon</p>
+<p>简易流程：</p>
+<p>安装WP</p>
+<p>mkdir -p &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress<br>​<br>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress<br>​<br>vim docker-compose.yml</p>
+<p>配置docker-compose.yml，参考官方文档：wordpress - Official Image | Docker Hub</p>
+<p>version: ‘3.1’<br>​<br>services:<br>​<br>  wordpress:<br>    image: wordpress:latest<br>    restart: always<br>    ports:<br>      - 8200:80<br>    environment:<br>      WORDPRESS_DB_HOST: db<br>      WORDPRESS_DB_USER: wordpress<br>      WORDPRESS_DB_PASSWORD: wordpress<br>      WORDPRESS_DB_NAME: wordpress<br>    volumes:<br>      - &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress&#x2F;data:&#x2F;var&#x2F;www&#x2F;html<br>​<br>  db:<br>    image: mysql:5.7<br>    restart: always<br>    environment:<br>      MYSQL_DATABASE: wordpress<br>      MYSQL_USER: wordpress<br>      MYSQL_PASSWORD: wordpress<br>      MYSQL_RANDOM_ROOT_PASSWORD: ‘1’<br>    volumes:<br>      - &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress&#x2F;db:&#x2F;var&#x2F;lib&#x2F;mysql<br>​<br>#volumes:</p>
+<h1 id="wordpress"><a href="#wordpress" class="headerlink" title="wordpress:"></a>wordpress:</h1><h1 id="db"><a href="#db" class="headerlink" title="db:"></a>db:</h1><p>wordpress和mysql的environment的值要一一对应。</p>
+<p>(如果VPS的内存不大于1G，建议设置1G的SWAP。mysql占用内存比较大。)</p>
+<p>查看端口占用，若被占用则换一个：</p>
+<p>lsof -i:8200</p>
+<p>启动docker compose服务</p>
+<p>docker compose up -d</p>
+<p>配置Nginx Proxy Manager反代</p>
+<p>打开网站：<a target="_blank" rel="noopener" href="http://vps-ip:8200/">http://VPS-IP:8200</a></p>
+<p>查看Docker容器内部ID：ip addr show docker0，一般都是172.17.0.1</p>
+<p>Add Proxy Host：</p>
+<p>Details:</p>
+<p>Scheme：http</p>
+<p>Forward Hostname &#x2F; IP：172.17.0.1，或者你的VPS-IP</p>
+<p>Forward Port：8200，或者你自定义的端口注意需要与docker-compose里的一致</p>
+<p>勾选Block Common Exploits和Websockets Support</p>
+<p>SSL:</p>
+<p>选择你申请的通配符SSL或者为该域名单独申请一个</p>
+<p>全勾选</p>
+<p>Cloudflare添加解析记录。</p>
+<p>然后进入WP在设置-&gt;常规里把两个URL改成你的域名即可。</p>
+<p>上传主题并安装</p>
+<p>先打开某主题的Github地址，例如Argon主题：solstice23&#x2F;argon-theme: 📖 Argon - 一个轻盈、简洁的 WordPress 主题 (github.com)并下载.zip文件，在WP主题中点击上传主题，选择压缩包并安装。</p>
+<p>正常来讲会出错，下面来解决。</p>
+<ol>
+<li>上传的文件尺寸超过php.ini中定义的upload_max_filesize值</li>
+</ol>
+<p>默认php设置的上传文件大小为2M，我们需要调整一下。</p>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress<br>vim uploads.ini</p>
+<p>在uploads.ini末尾加入以下内容</p>
+<p>file_uploads &#x3D; On<br>upload_max_filesize &#x3D; 256M    #可以自己设置大小<br>post_max_size &#x3D; 256M  #可以自己设置大小</p>
+<p>在docker-compose.yml里WP配置的volumes添加一行内容</p>
+<ul>
+<li>&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress&#x2F;uploads.ini:&#x2F;usr&#x2F;local&#x2F;etc&#x2F;php&#x2F;conf.d&#x2F;uploads.ini</li>
+</ul>
+<p>暂停并重启容器</p>
+<p>docker-compose down<br>docker-compose up -d </p>
+<p>查看修改结果</p>
+<p>docker ps<br>docker exec 你的wp容器id php -i | grep upload</p>
+<ol start="2">
+<li>上传主题，出现“您点击的链接已过期”</li>
+</ol>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;wordpress&#x2F;data<br>vim .htaccess</p>
+<p>文本末尾空一行，添加以下内容</p>
+<p>php_value max_execution_time 300<br>php_value upload_max_filesize 256M<br>php_value post_max_size 256M<br>php_value memory_limit 128M<br>php_value max_input_vars 5000</p>
+<p>然后再上传主题并安装，启用主题即可。</p>
+<p>配置redis(可选)</p>
+<p>教程里有。</p>
+<p>动态网站 Typecho</p>
+<p>简单说明：比WordPress轻量</p>
+<p>参考教程：</p>
+<p>视频【好玩儿的Docker项目】10分钟搭建一个Typecho博客｜太破口！念念不忘，必有回响！哔哩哔哩bilibili</p>
+<p>还未尝试。</p>
+<p>动态网站 Halo</p>
+<p>内存占用：820M起步，因为Halo本身Java就大，还用的MYSQL8.0</p>
+<p>参考教程：</p>
+<p>官方文档 Halo 文档</p>
+<p>博客 【好玩儿的Docker项目】好用又强大的开源建站工具——Halo 2.0</p>
+<p>扩展阅读：</p>
+<p>Halo社区：<a target="_blank" rel="noopener" href="https://bbs.halo.run/">https://bbs.halo.run/</a></p>
+<p>官网地址：<a target="_blank" rel="noopener" href="https://halo.run/">https://halo.run/</a></p>
+<p>应用市场：<a target="_blank" rel="noopener" href="https://www.halo.run/store/apps">https://www.halo.run/store/apps</a></p>
+<p>简易流程：</p>
+<p>创建文件夹</p>
+<p>mkdir &#x2F;data&#x2F;docker_data&#x2F;halo<br>cd &#x2F;data&#x2F;docker_data&#x2F;halo<br>vim docker-compose.yml</p>
+<p>配置docker-compose.yml</p>
+<p>version: “3”<br>​<br>services:<br>  halo:<br>    image: halohub&#x2F;halo:2.13<br>    container_name: halo<br>    restart: on-failure:3<br>    depends_on:<br>      halodb:<br>        condition: service_healthy<br>    networks:<br>      halo_network:<br>    volumes:<br>      - .&#x2F;halo2:&#x2F;root&#x2F;.halo2<br>    ports:<br>      - “8090:8090”<br>    healthcheck:<br>      test: [“CMD”, “curl”, “-f”, “<a target="_blank" rel="noopener" href="http://localhost:8090/actuator/health/readiness%22]">http://localhost:8090/actuator/health/readiness&quot;]</a><br>      interval: 30s<br>      timeout: 5s<br>      retries: 5<br>      start_period: 30s<br>    command:<br>      - –spring.r2dbc.url&#x3D;r2dbc:pool:mysql:&#x2F;&#x2F;halodb:3306&#x2F;halo<br>      - –spring.r2dbc.username&#x3D;root<br>      # MySQL 的密码，请保证与下方 MYSQL_ROOT_PASSWORD 的变量值一致。<br>      - –spring.r2dbc.password&#x3D;o#DwN&amp;JSa56<br>      - –spring.sql.init.platform&#x3D;mysql<br>      # 外部访问地址，请根据实际需要修改<br>      - –halo.external-url&#x3D;<a target="_blank" rel="noopener" href="http://localhost:8090/">http://localhost:8090/</a><br>​<br>  halodb:<br>    image: mysql:8.1.0<br>    container_name: halodb<br>    restart: on-failure:3<br>    networks:<br>      halo_network:<br>    command:<br>      - –default-authentication-plugin&#x3D;caching_sha2_password<br>      - –character-set-server&#x3D;utf8mb4<br>      - –collation-server&#x3D;utf8mb4_general_ci<br>      - –explicit_defaults_for_timestamp&#x3D;true<br>    volumes:<br>      - .&#x2F;mysql:&#x2F;var&#x2F;lib&#x2F;mysql<br>      - .&#x2F;mysqlBackup:&#x2F;data&#x2F;mysqlBackup<br>    ports:<br>      - “3306”<br>    healthcheck:<br>      test: [“CMD”, “mysqladmin”, “ping”, “-h”, “127.0.0.1”, “–silent”]<br>      interval: 3s<br>      retries: 5<br>      start_period: 30s<br>    environment:<br>      # 请修改此密码，并对应修改上方 Halo 服务的 SPRING_R2DBC_PASSWORD 变量值<br>      - MYSQL_ROOT_PASSWORD&#x3D;o#DwN&amp;JSa56<br>      - MYSQL_DATABASE&#x3D;halo<br>​<br>networks:<br>  halo_network:</p>
+<p>–halo.external-url改为自己实际要用的域名；–spring.r2dbc.password和MYSQL_ROOT_PASSWORD的值要一致，自行修改；halodb的ports为3306而不是3306:3306，避免把端口暴露在公网，它会随机找一个主机空闲端口进行映射。</p>
+<p>确认端口未被占用</p>
+<p>lsof -i:8090</p>
+<p>启动Docker Compose服务</p>
+<p>docker compose up -d</p>
+<p>NPM反代配置</p>
+<p>先NPM配置再进行Halo安装程序。</p>
+<p>域名与–halo.external-url一致，xxx和<a target="_blank" rel="noopener" href="http://www.xxx,http,172.17.0.1,8090,全勾选.force/">www.xxx，http，172.17.0.1，8090，全勾选。Force</a> SSL</p>
+<p>初始化Halo</p>
+<p>打开your-VPS-IP:8090，输入对应信息进行初始化。</p>
+<p>安装主题</p>
+<p>Joe 3.0慕名而来。参考官方文档：<a target="_blank" rel="noopener" href="https://docs.halo.run/user-guide/themes">https://docs.halo.run/user-guide/themes</a></p>
+<p>可以选择远程下载，在主题中点击下载，输入域名即可跳转。</p>
+<p>基本配置</p>
+<p>需要先在设置-&gt;通知设置，设置好邮箱服务器后才能接受邮件验证码。然后去用户页验证邮箱。</p>
+<p>主题色可改为蓝色：#2a64f6</p>
+<p>其他内容自行折腾。</p>
+<p>补充</p>
+<p>更新操作</p>
+<h1 id="修改-docker-compose-yaml-中配置的image版本"><a href="#修改-docker-compose-yaml-中配置的image版本" class="headerlink" title="修改 docker-compose.yaml 中配置的image版本"></a>修改 docker-compose.yaml 中配置的image版本</h1><p>services:<br>  halo:<br>    image: halohub&#x2F;halo:2.13<br>    container_name: halo<br>​</p>
+<h1 id="重启docker-compose"><a href="#重启docker-compose" class="headerlink" title="重启docker compose"></a>重启docker compose</h1><p>docker-compose up -d</p>
+<p>卸载操作</p>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;halo<br>​<br>docker-compose down<br>​<br>cd ..<br>​<br>rm -rf &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;halo  # 完全删除映射到本地的数据</p>
+<p>网站监控 Uptime Kuma</p>
+<p>内存占用：150M</p>
+<p>参考教程：</p>
+<p>视频【好玩的Docker项目】搭建一个专属自己的网站监控——Uptime Kuma哔哩哔哩bilibili</p>
+<p>博客【好玩的Docker项目】搭建一个专属自己的网站监控——Uptime Kuma | 爱玩实验室 (iwanlab.com)</p>
+<p>简易流程：</p>
+<p>创建项目文件夹</p>
+<p>mkdir -p &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;uptimekuma<br>​<br>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;uptimekuma<br>​<br>vim docker-compose.yml</p>
+<p>配置docker-compose.yml</p>
+<p>version: ‘3.3’<br>​<br>services:<br>  uptime-kuma:<br>    image: louislam&#x2F;uptime-kuma<br>    container_name: uptime-kuma<br>    volumes:<br>      - .&#x2F;uptime-kuma:&#x2F;app&#x2F;data<br>    ports:<br>      - 3001:3001</p>
+<p>确认端口未被占用</p>
+<p>lsof -i:3001</p>
+<p>启动Docker Compose服务</p>
+<p>docker compose up -d</p>
+<p>打开站点：VPS-IP:3301</p>
+<p>自行添加监控项和状态页。</p>
+<p>NPM反代：http，172.17.0.1,3001勾选后两个。SSL勾选第一个。</p>
+<p>Cloudflare添加解析记录。</p>
+<p>回到Uptime Kuma，配置状态页。然后入口页面设为状态页，修改站点主URL为反代地址。</p>
+<p>网站统计 Umami</p>
+<p>参考教程：</p>
+<p>视频【好玩的Docker项目】你的网站究竟有多少流量？搭建一个小而美的网站流量统计工具——Umami哔哩哔哩bilibili</p>
+<p>博客【好玩的Docker项目】搭建一个小而美的网站流量监控——Umami | 爱玩实验室 (iwanlab.com)</p>
+<p>简易流程：</p>
+<p>创建项目文件夹</p>
+<p>mkdir -p &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;umami<br>​<br>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;umami<br>​<br>vim docker-compose.yml</p>
+<p>配置docker-compose.yml文件：</p>
+<p>version: ‘3’<br>​<br>services:<br> umami:<br>  image: ghcr.io&#x2F;umami-software&#x2F;umami:postgresql-latest<br>  ports:<br>    - “3000:3000”<br>  environment:<br>   DATABASE_URL: postgresql:&#x2F;&#x2F;umami:umami@db:5432&#x2F;umami<br>   DATABASE_TYPE: postgresql<br>   HASH_SALT: replace-me-with-a-random-string<br>  depends_on:<br>    - db<br>  restart: always</p>
+<p> db:<br>  image: postgres:12-alpine<br>  environment:<br>   POSTGRES_DB: umami<br>   POSTGRES_USER: umami<br>   POSTGRES_PASSWORD: umami<br>  volumes:<br>    - .&#x2F;sql&#x2F;schema.postgresql.sql:&#x2F;docker-entrypoint-initdb.d&#x2F;schema.postgresql.sql:ro<br>    - .&#x2F;umami-db-data:&#x2F;var&#x2F;lib&#x2F;postgresql&#x2F;data<br>  restart: always</p>
+<p>检查一下端口是否被占用</p>
+<p>lsof -i:3000</p>
+<p>启动Docker Compose服务</p>
+<p>docker compose up -d</p>
+<p>访问 IP:3000 进入Umami后台。</p>
+<p>默认账号密码是：Username: admin，Password: umami</p>
+<p>添加网站，获得跟踪代码，在自己的网站中引入该js代码。</p>
+<p>启用共享链接，别人可通过此链接查看网站访客统计数据。</p>
+<p>网盘挂载 Alist</p>
+<p>内存占用：40M</p>
+<p>简单介绍：</p>
+<p>支持挂载的网盘存储：本地、阿里云、百度云、谷歌云、OneDrive、蓝奏云、天翼云、迅雷云等等。</p>
+<p>支持在线查看文件类型：文本、音频、视频、图片。</p>
+<p>注意：Alist挂载非OneDrive和谷歌网盘，流量大了可能会封号。类似项目ZFile可以规避这个问题。</p>
+<p>【好玩儿的Docker项目】ZFile ——又一款强大好用的在线文件目录的程序！ | 爱玩实验室 (iwanlab.com)</p>
+<p>参考教程：</p>
+<p>视频【好玩的Docker项目】目前最好用的网盘直链程序——AList，支持市面上几乎所有网盘！可以代替Olaindex！哔哩哔哩bilibili</p>
+<p>博客【好玩的Docker项目】目前最好用的网盘直链程序——AList，支持市面上几乎所有网盘！可以代替Olaindex！ | 爱玩实验室 (iwanlab.com)</p>
+<p>官方文档：Home | AList文档 (nn.ci)</p>
+<p>简易流程：</p>
+<p>创建项目文件夹</p>
+<p>mkdir -p &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;alist<br>​<br>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;alist<br>​<br>vim docker-compose.yml</p>
+<p>配置docker-compose.yml文件：</p>
+<p>version: ‘3.3’<br>services:<br>    alist:<br>        restart: always<br>        volumes:<br>            - ‘&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;alist:&#x2F;opt&#x2F;alist&#x2F;data’    # 冒号左边的地址可以自己修改<br>        ports:<br>            - ‘5244:5244’      # 冒号左边的端口可以自己修改<br>        container_name: alist<br>        image: ‘xhofe&#x2F;alist:latest’</p>
+<p>检查一下端口是否被占用</p>
+<p>lsof -i:5244</p>
+<p>启动docker-compose服务</p>
+<p>docker compose up -d</p>
+<p>查看Alist初始密码</p>
+<p>docker logs alist</p>
+<h1 id="或者"><a href="#或者" class="headerlink" title="或者"></a>或者</h1><p>docker exec -it alist .&#x2F;alist -password<br>​</p>
+<h1 id="如果后续忘记密码，可以随机生成或指定"><a href="#如果后续忘记密码，可以随机生成或指定" class="headerlink" title="如果后续忘记密码，可以随机生成或指定"></a>如果后续忘记密码，可以随机生成或指定</h1><p>docker exec -it alist .&#x2F;alist admin random<br>docker exec -it alist .&#x2F;alist admin set xxxxxxx</p>
+<p>找到Successfully created the admin user and the initial password is: xxxxxx，这里账号是admin，密码是xxxxx。</p>
+<p>访问 IP:5244 进入Alist后台并登录。会报错，点击最下方的管理即可。</p>
+<p>配置反向代理</p>
+<p>正常配置就行了。做好域名解析。</p>
+<p>添加存储</p>
+<p>存储添加方式参考：通用项 | AList文档 (nn.ci)</p>
+<p>挂载路径指的是在Alist主页列表路径，根文件夹路径指的是对应的网盘里的文件夹路径。如果是OneDrive，可以填&#x2F;OneDrive和&#x2F;Alist挂载(需要创建对应文件夹)。</p>
+<p>本地存储：</p>
+<p>先在&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;alist&#x2F;下创建local文件夹。</p>
+<p>在管理面板-&gt;设置-&gt;存储，驱动：本机存储，挂载路径：&#x2F;local，根文件夹路径：&#x2F;opt&#x2F;alist&#x2F;data&#x2F;local。这样VPS的&#x2F;root&#x2F;data&#x2F;docker_data&#x2F;alist&#x2F;local将会成为本地云盘的文件夹，也不用搭建什么NextCloud了。</p>
+<p>此时打开Alist主页，能看到挂载的local文件夹。</p>
+<p>阿里云、OneDrive：看文档，一遍过，无坑。</p>
+<p>蓝奏云：如果访问失败，复制蓝奏云的个人中心-&gt;个性域名到Alist设置里的分享链接，刷新下缓存即可(注意有的文件被删了但是目录还在，也可能是这个原因，需要自己去蓝奏云下载下看看还在不)</p>
+<p>迅雷、天翼云：手机号验证码登录的话，需要手动设置个密码用于绑定挂载。</p>
+<p>百度云：本身限制太多，不好用。</p>
+<p>给文件夹加密码</p>
+<p>先在用户-&gt;游客把停用取消勾选 。</p>
+<p>在元信息添加路径(需要该文件夹存在)，填写密码和其他信息。</p>
+<p>换个浏览器或设备或匿名模式打开Alist主页，打开该文件夹就需要密码正确才能进入。</p>
+<p>可以根据个人需要设置用户权限和文件夹元信息。</p>
+<p>Docker可视化 Portainer</p>
+<p>参考教程：</p>
+<p>视频 【Docker系列】超级好用的Docker可视化工具——Portainer哔哩哔哩bilibili</p>
+<p>VPS太小，还没装</p>
+<p>其他项目</p>
+<p>静态导航 Hexo-WebStack</p>
+<p>参考教程：</p>
+<p>优雅的使用Webstack打造个人网址导航-腾讯云开发者社区-腾讯云 (tencent.com)</p>
+<p>通过Nginx Proxy Manager代理静态网站（例如Hexo） – 卢孟德的学习小站 (lumengde.com)</p>
+<p>更新Docker</p>
+<p>以下是通常情况下的更新指令</p>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;xxxx<br>​<br>docker-compose pull<br>​<br>docker compose up -d    # 请不要使用 docker-compose stop 来停止容器，因为这么做需要额外的时间等待容器停止；docker compose up -d 直接升级容器时会自动停止并立刻重建新的容器，完全没有必要浪费那些时间。<br>​<br>docker image prune  # prune 命令用来删除不再使用的 docker 对象。删除所有未被 tag 标记和未被容器使用的镜像</p>
+<p>卸载Docker</p>
+<p>cd &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;xxxx<br>​<br>docker-compose down<br>​<br>cd ..<br>​<br>rm -rf &#x2F;root&#x2F;data&#x2F;docker_data&#x2F;xxxx  # 完全删除</p>
+</div><div class="post-copyright"><script type="text/javascript" src="/js/copyright.js?v=1.0.0" successtext="复制成功！"></script><link rel="stylesheet" type="text/css" href="/css/copyright.css?v=1.0.0"><p><span>本文标题：</span>VPS项目搭建-集合(待修改)</p><p><span>文章作者：</span>德德</p><p><span>发布时间：</span>2024-06-14</p><p><span>最后更新：</span>2024-06-17</p><p><span>原始链接：</span><a href="/posts/9437.html">https://lumengde123.github.io/posts/9437.html</a><span class="copy-path"><i class="fa fa-clipboard" data-clipboard-text="https://lumengde123.github.io/posts/9437.html"></i></span></p><p><span>版权声明：</span>本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议。转载请注明出处！</p></div><br><div class="tags"></div><div class="post-nav"><a class="pre" href="/posts/6173.html">Docker Compose 安装及常用命令整理</a><a class="next" href="/posts/ec17.html">零成本搭建Hexo博客网站</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="search-form"><input id="local-search-input" placeholder="Search" type="text" name="q" results="0"/><div id="local-search-result"></div></div></div><div class="widget"><div class="author-info"><a class="info-avatar" href="/about/" title="关于"><img class="nofancybox" src="/img/avatar.jpg"/></a><p>无</p><a class="info-icon" href="https://twitter.com/username" title="Twitter" target="_blank" style="margin-inline:5px"> <i class="fa fa-twitter-square" style="margin-inline:5px"></i></a><a class="info-icon" href="mailto:admin@domain.com" title="Email" target="_blank" style="margin-inline:5px"> <i class="fa fa-envelope-square" style="margin-inline:5px"></i></a><a class="info-icon" href="https://github.com/lumengde123" title="Github" target="_blank" style="margin-inline:5px"> <i class="fa fa-github-square" style="margin-inline:5px"></i></a><a class="info-icon" href="/atom.xml" title="RSS" target="_blank" style="margin-inline:5px"> <i class="fa fa-rss-square" style="margin-inline:5px"></i></a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%92%E8%81%94%E7%BD%91%E6%8A%80%E6%9C%AF/">互联网技术</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9A%82%E6%9C%AA%E5%BD%92%E7%B1%BB/">暂未归类</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">软件使用教程</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%9A%8F%E7%AC%94%E6%9D%82%E8%AE%B0/">随笔杂记</a><span class="category-list-count">2</span></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/VPS%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA/" style="font-size: 15px;">VPS项目搭建</a> <a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 15px;">科学上网</a> <a href="/tags/Django/" style="font-size: 15px;">Django</a> <a href="/tags/Hexo/" style="font-size: 15px;">Hexo</a> <a href="/tags/%E5%8D%9A%E5%AE%A2%E7%9B%B8%E5%85%B3/" style="font-size: 15px;">博客相关</a> <a href="/tags/%E5%9B%BE%E5%BA%8A/" style="font-size: 15px;">图床</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/posts/d5ba.html">临时内容存放处</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/5e93.html">VPS基本使用和性能测试</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/1ea.html">使用Django快速搭建web网站 | 实现简单注册登录功能</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/fa4.html">免费获取CloudFlare的科学上网节点</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/c74a.html">通过GitHook部署Hexo博客到VPS上</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/e800.html">随笔-拥有一台云服务器能做什么</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/3bd1.html">随笔-英语博主合集</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/87e0.html">搭建Hexo-Webstack个人导航并部署到Github和VPS</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/d95.html">Hexo图片管理 | 图床使用教程</a></li><li class="post-list-item"><a class="post-list-link" href="/posts/6173.html">Docker Compose 安装及常用命令整理</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2024 <a href="/." rel="nofollow">mengdelu.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=1.0.0" async></script><script type="text/javascript" src="//lib.baomitu.com/fancybox/latest/jquery.fancybox.min.js"></script><script type="text/javascript" src="/js/fancybox.js?v=1.0.0"></script><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/fancybox/latest/jquery.fancybox.min.css"><link rel="stylesheet" type="text/css" href="/css/search.css?v=1.0.0"><script type="text/javascript" src="/js/search.js?v=1.0.0"></script><script>var search_path = 'search.xml';
+if (search_path.length == 0) {
+  search_path = 'search.xml';
+}
+var path = '/' + search_path;
+searchFunc(path, 'local-search-input', 'local-search-result');
+</script><script type="text/javascript" src="/js/copycode.js?v=1.0.0" successtext="复制成功！"></script><link rel="stylesheet" type="text/css" href="/css/copycode.css?v=1.0.0"><link rel="stylesheet" type="text/css" href="/css/external.css?v=1.0.0"><script type="text/javascript" src="/js/codeblock-resizer.js?v=1.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=1.0.0"></script></div></body></html>
