@@ -1,0 +1,61 @@
+.container {
+    width: 95%;
+    margin: 0 auto;
+  }
+
+/* 标题盒子样式 */
+.title-box {
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* 内容盒子（Flexbox 容器）样式 */
+.content-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 影视封面卡片样式 */
+.movie-card {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    width: calc(100% / 6 - 10px); /* 默认每行 6 个 */
+}
+
+.movie-card a {
+    display: block;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+}
+
+/* 媒体查询：宽度小于 1024px */
+@media (max-width: 1024px) {
+.movie-card {
+        width: calc(100% / 4 - 10px); /* 每行 4 个 */
+    }
+}
+
+/* 媒体查询：宽度小于 767px */
+@media (max-width: 767px) {
+    .movie-card {
+        width: calc(100% / 3 - 10px); /* 每行 3 个 */
+    }
+}
+
+/* 媒体查询：宽度小于 600px */
+@media (max-width: 600px) {
+    .movie-card {
+        width: calc(100% / 2 - 10px); /* 每行 2 个 */
+    }
+}
+
+/* 媒体查询：宽度小于 400px */
+@media (max-width: 400px) {
+    .movie-card {
+        width: 100%; /* 每行 1 个 */
+    }
+}
